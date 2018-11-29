@@ -3,7 +3,7 @@
 # audit data wrangling
 
 # this script wrangles audit data used for Avis, Ferraz, and Finan (2018) paper.
-# what we do here is basically clean up the data and produce a dataset version
+# what I do here is basically clean up the data and produce a dataset version
 # which aggregates everything by municipality
 
 # by andre.assumpcao@gmail.com
@@ -63,20 +63,14 @@ audit.dataset <- bind_cols(audit.dataset, ibge.munID) %>%
 audit.dataset %<>% filter(!(Ed_Sorteio %in% paste0('V0', 1:4)))
 
 # rename variables and recode them as string
-audit.dataset %<>%
+audit <- audit.dataset %>%
   select(-Municipio, -UF, -descricao_sumaria) %>%
   select(mun.id = ibgeID, state.id = stateID, mun.name = munName,
-    lottery.id = Ed_Sorteio, lottery.year = Ano_Sorteio,
+    audit.id = Ed_Sorteio, audit.year = Ano_Sorteio,
     so.amount = Montante_fisc, so.min = Orgao_Sup, so.program = Funcao,
     so.subprogram = Subfuncao, program.name = Programa, subprogram.name = Acao,
     so.corruption = Tipo_constatacao) %>%
   mutate_all(as.character)
 
-# change dataset new
-assign('audits', audit.dataset)
-
 # write to disk
-save(audits, file = '00_audit.Rda')
-
-# quit
-q('no')
+save(audit, file = '00_audit.Rda')
