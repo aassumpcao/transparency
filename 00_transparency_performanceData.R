@@ -34,7 +34,10 @@ for (i in seq(files)) {
 }
 
 ### warning: R couldn't load munic files, so i had to manually convert all files
-### before importing them here
+### to .csv before importing them here
+
+# delete .xls files
+unlink('./munic/file*.xls')
 
 ################################################################################
 # load two performance variables per dataset
@@ -49,5 +52,39 @@ for (i in seq(files)) {
 #   file8  A34; year 2013
 #   file9  -  ; year 2014
 #   file10 A17; year 2015
+
+# list csv files
+files <- list.files(folder, pattern = '\\.csv')
+years <- c(2004:2005, 2008:2009, 2012:2013, 2015)
+
+# create loop for datasets
+for (i in seq(files)) {
+  # extract origin file
+  file <- paste0(folder, files[i])
+  # conditions for creating or appending data
+  if (i == 1) {
+    # create dataset for first loop
+    performance <- read_csv(file, col_names = FALSE) %>%
+                   mutate(year = years[i]) %>%
+                   slice(-1)
+  } else {
+    # create dataset for other sequences of loop
+    append      <- read_csv(file, col_names = FALSE) %>%
+                   mutate(year = years[i]) %>%
+                   slice(-1)
+    # append dataset for other sequences of loop
+    performance <- rbind(performance, append)
+  }
+  if (i == length(files)) {rm(append, i)}
+}
+
+# spread data
+performance %<>%
+  transmute(
+    mun.id = str_extract(X1, '[0-9]{1,6}'), mdp.outcome = ifelse(X2=='Sim',1,0),
+    mdp.year = year
+  ) %>%
+  filter(!is.na(mun.id)) %>%
+  spread(key = mdp.year, value = mdp.outcome)
 
 

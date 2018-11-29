@@ -69,7 +69,7 @@ audit <- audit.dataset %>%
     audit.id = Ed_Sorteio, audit.year = Ano_Sorteio,
     so.amount = Montante_fisc, so.min = Orgao_Sup, so.program = Funcao,
     so.subprogram = Subfuncao, program.name = Programa, subprogram.name = Acao,
-    so.corruption = Tipo_constatacao) %>%
+    audit.outcome = Tipo_constatacao) %>%
   mutate_all(as.character)
 
 # write to disk
