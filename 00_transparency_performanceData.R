@@ -18,20 +18,20 @@ library(readxl)
 files  <- list.files(pattern = 'munic20(0[4-9]|1[1-7])?\\.zip')
 folder <- './munic/'
 
-# create for loop renaming files
-for (i in seq(files)) {
-  # extract origin file
-  file <- paste0('./', files[i])
-  # unzip file into folder
-  unzip(file, exdir = folder)
-  # wait for a few seconds before files are unzipped
-  Sys.sleep(5)
-  # rename file in folder
-  folder %>%
-    list.files(pattern = '(^[bB]|mu)(.)+\\.xls') %>%
-    {paste0(folder, .)} %>%
-    file.rename(paste0('./munic/file', i, '.xls'))
-}
+# # create for loop renaming files
+# for (i in seq(files)) {
+#   # extract origin file
+#   file <- paste0('./', files[i])
+#   # unzip file into folder
+#   unzip(file, exdir = folder)
+#   # wait for a few seconds before files are unzipped
+#   Sys.sleep(5)
+#   # rename file in folder
+#   folder %>%
+#     list.files(pattern = '(^[bB]|mu)(.)+\\.xls') %>%
+#     {paste0(folder, .)} %>%
+#     file.rename(paste0('./munic/file', i, '.xls'))
+# }
 
 ### warning: R couldn't load munic files, so i had to manually convert all files
 ### to .csv before importing them here
@@ -81,10 +81,18 @@ for (i in seq(files)) {
 # spread data
 performance %<>%
   transmute(
-    mun.id = str_extract(X1, '[0-9]{1,6}'), mdp.outcome = ifelse(X2=='Sim',1,0),
+    mun.id = str_extract(X1, '[0-9]{1,6}'),
+    mdp.outcome = ifelse(X2 == 'Sim', 1, 0),
     mdp.year = year
   ) %>%
   filter(!is.na(mun.id)) %>%
-  spread(key = mdp.year, value = mdp.outcome)
+  spread(key = mdp.year, value = mdp.outcome) %>%
+  rename(
+    mdp.outcome2004 = `2004`, mdp.outcome2005 = `2005`,
+    mdp.outcome2008 = `2008`, mdp.outcome2009 = `2009`,
+    mdp.outcome2012 = `2012`, mdp.outcome2013 = `2013`,
+    mdp.outcome2015 = `2015`
+  )
 
-
+# write to disk
+save(transparency, file = '00_transparency.Rda')

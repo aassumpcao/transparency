@@ -1,6 +1,6 @@
 ################################################################################
 # active passive transparency paper
-# audit data wrangling
+# ebt data wrangling
 
 # this script wrangles data from the 'escala brasil transparente (ebt)' (the
 # transparent brazil scale). what I do here is basically rename variables and
