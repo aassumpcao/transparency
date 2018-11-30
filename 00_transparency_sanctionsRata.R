@@ -68,4 +68,16 @@ rde %>%
   filter(rde.year == 2012) %$%
   unique(IdRelatorioPublicacao) %>%
   {paste0('https://auditoria.cgu.gov.br/download/', ., '.pdf')} %>%
-  {mapply(download.file, .[91:132], destfile = pdf.names[91:132])}
+  {mapply(download.file, ., destfile = pdf.names)}
+
+# write to disk
+save(rde, file = '00_rde.Rda')
+
+################################################################################
+# load data on police cooperation with CGU
+# import from avis, ferraz, and finan (2018) @ the jpe (2003-2015)
+crackdown1 <- haven::read_stata('table4-1.dta')
+
+# import from cgu (2016-2018)
+crackdown2 <- read_excel('Operacoes_Especiais_20181001.xlsx')
+

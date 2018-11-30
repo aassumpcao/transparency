@@ -184,17 +184,35 @@ test <- pdf_text('./rdereports/5881.pdf') %>%
 str_detect(test, '(trabalh)+(.)*(.)(real)+')
 
 
-
- %>%
-
-trimws() %>%
-str_extract('(cuj[oa])?(s)*(.)+(trabalh)+(.)*\\.')
+View(crackdown2)
 
 
+# fix the number of state and municipality entries for each crackdown operation
+# split sample where everything is correct
+crackdown2.1 <- crackdown2 %>%
+  filter(!is.na(mun)) %>%
+  select(uf, mun) %>%
+  filter(str_count(uf, ';') == str_count(mun, ';'))
 
-strsplit('\n')
+# split sample where all municipalities are in the same state
+crackdown2.2 <- crackdown2 %>%
+  filter(!is.na(mun)) %>%
+  select(uf, mun) %>%
+  filter(str_count(uf, ';') < str_count(mun, ';')) %>%
+  filter(str_count(uf, ';') == 0) %>%
+  mutate(uf = paste0(uf, strrep(paste0(';', uf), str_count(mun, ';'))))
 
-paste0(., collapse = )
+# split sample for the case where there is mix of municipalities and states
+crackdown2.3 <- crackdown2 %>%
+  filter(!is.na(mun)) %>%
+  select(uf, mun) %>%
+  filter(str_count(uf, ';') < str_count(mun, ';')) %>%
+  filter(str_count(uf, ';') > 0)
 
+# fill states in manually
+crackdown2.3$uf <- c('MS;MS;PR;PR;SP;SP', 'PB;PB;PB;RN;PE', 'MS;MT;MT;SP',
+  'MA;MA;TO;TO;TO', 'MA;MA;TO;TO;TO', 'GO;GO;GO;PR;PR;PR;DF',
+  'PR;PR;PR;PR;PR;PR;RJ;RJ', 'AL;AL;AL;AL;AL;AL;AL;AL;AL;AL;AL;AL;PE;PE',
+  'PR;PR;MS;MS;RN', 'MG;MG;MG;MG;GO;GO;GO', 'SC;SC;DF')
 
-?gsub
+crackdown.operation <- rbind(crackdown2.1, crackdown2.2, crackdown2.3)

@@ -95,4 +95,4 @@ performance %<>%
   )
 
 # write to disk
-save(transparency, file = '00_transparency.Rda')
+save(performance, file = '00_performance.Rda')
