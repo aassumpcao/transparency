@@ -16,6 +16,7 @@ library(here)
 library(tidyverse)
 library(magrittr)
 library(readxl)
+library(pdftools)
 
 ################################################################################
 # load data on police cooperation with CGU
@@ -50,3 +51,21 @@ rm(list = objects(pattern = '\\.fix'))
 
 # drop reports that are not originated by police investigations
 rde %<>% filter(!is.na(Demanda))
+
+# filter to reports from 2012, download them from the internet and check the
+# date they were conducted to narrow in on their status before or after lai
+dir.create('./rdereports/')
+
+# define destination files for download
+pdf.names <- rde %>%
+  filter(rde.year == 2012) %$%
+  unique(IdRelatorioPublicacao) %>%
+  paste0('.pdf') %>%
+  {paste0('./rdereports/', .)}
+
+# download all files
+rde %>%
+  filter(rde.year == 2012) %$%
+  unique(IdRelatorioPublicacao) %>%
+  {paste0('https://auditoria.cgu.gov.br/download/', ., '.pdf')} %>%
+  {mapply(download.file, .[91:132], destfile = pdf.names[91:132])}

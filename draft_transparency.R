@@ -106,7 +106,7 @@ files   <- c('Base_de_Dados/Base_MUNIC_2017_xls.zip',
 mapply(download.file, paste(mainURL, years, files, sep = '/'),
        destfile = paste0('../2018 TSE Databank/munic', years, '.zip'))
 
-
+brasil.transparente %>% names()
 
 audit.dataset %>% names()
 audit.dataset %>% View()
@@ -125,11 +125,76 @@ rm(audit.date)
 (.5*65)+(.5*25)
 (.5*75)+(.5*15)
 
+performance %>%
+  filter(row_number() %in% c(22254:22260))
 
+performance %$% table(nchar(X1))
+
+?str_extract
 
 (90-2*(11.25+11.25))*11.25
 (90-2*(11.25+11.25))*11.25569
 
 (506.25-450)/(569.5312-506.25)
 
+audits %>% names()
 
+brasil.transparente %$% table(municipio)
+
+brasil.transparente %>% names()
+brasil.transparente %>% View()
+
+audits %$% table(nchar(mun.id))
+
+rde %$% table(nchar(Nr_Ordem_Servico))
+rde %>%
+  filter(nchar(Nr_Processo) == 17) %>%
+  mutate(date = str_extract(Nr_Ordem_Servico, '^[0-9]{4,4}')) %$%
+  table(date)
+
+
+date.fix1 <- rde %>%
+  filter(nchar(Nr_Processo) < 17) %>%
+  mutate(rde.year = substr(Nr_Ordem_Servico, 1, 4))
+
+date.fix2 <- rde %>%
+  filter(nchar(Nr_Processo) == 17) %>%
+  mutate(rde.year = substr(Nr_Processo, 12, 15)) %>%
+  filter(rde.year %in% c(2003:2018))
+
+date.fix3 <- rde %>%
+  filter(nchar(Nr_Processo) == 17) %>%
+  filter(!(substr(Nr_Processo, 12, 15) %in% c(2003:2018))) %>%
+  mutate(rde.year = substr(Nr_Ordem_Servico, 1, 4))
+
+rde %$% table(Demanda)
+
+rde %>%
+  filter(rde.year == 2012) %>%
+  View()
+
+
+test <- pdf_text('./rdereports/5881.pdf') %>%
+        .[1:4] %>%
+        str_replace_all('\n', ' ') %>%
+        str_replace_all('( ){1,}', ' ') %>%
+        str_split('\\.') %>%
+        unlist()
+
+str_detect(test, '(trabalh)+(.)*(.)(real)+')
+
+
+
+ %>%
+
+trimws() %>%
+str_extract('(cuj[oa])?(s)*(.)+(trabalh)+(.)*\\.')
+
+
+
+strsplit('\n')
+
+paste0(., collapse = )
+
+
+?gsub
