@@ -18,6 +18,9 @@ library(magrittr)
 library(readxl)
 library(pdftools)
 
+# load datasets
+load('ibge.dataset.Rda')
+
 ################################################################################
 # load data on police cooperation with CGU
 rde <- read_excel('LAI 00075.001622-2018-19.xlsx')
@@ -63,12 +66,12 @@ pdf.names <- rde %>%
   paste0('.pdf') %>%
   {paste0('./rdereports/', .)}
 
-# download all files
-rde %>%
-  filter(rde.year == 2012) %$%
-  unique(IdRelatorioPublicacao) %>%
-  {paste0('https://auditoria.cgu.gov.br/download/', ., '.pdf')} %>%
-  {mapply(download.file, ., destfile = pdf.names)}
+# # download all files
+# rde %>%
+#   filter(rde.year == 2012) %$%
+#   unique(IdRelatorioPublicacao) %>%
+#   {paste0('https://auditoria.cgu.gov.br/download/', ., '.pdf')} %>%
+#   {mapply(download.file, ., destfile = pdf.names)}
 
 # write to disk
 save(rde, file = '00_rde.Rda')
@@ -105,7 +108,7 @@ crackdown2.3 <- crackdown2 %>%
 crackdown2.3$uf <- c('MS;MS;PR;PR;SP;SP', 'PB;PB;PB;RN;PE', 'MS;MT;MT;SP',
   'MA;MA;TO;TO;TO', 'MA;MA;TO;TO;TO', 'GO;GO;GO;PR;PR;PR;DF',
   'PR;PR;PR;PR;PR;PR;RJ;RJ', 'AL;AL;AL;AL;AL;AL;AL;AL;AL;AL;AL;AL;PE;PE',
-  'PR;PR;MS;MS;RN', 'MG;MG;MG;MG;GO;GO;GO', 'SC;SC;DF')
+  'PR;PR;MS;MS;RN', 'MG;MG;MG;MG;MG;GO;GO', 'SC;SC;DF')
 
 # bind them together
 crackdown2 <- rbind(crackdown2.1, crackdown2.2, crackdown2.3)
@@ -115,5 +118,8 @@ rm(list = objects(pattern = '2\\.'))
 
 # expand rows by the number of municipalities audited
 crackdown2 %<>% separate_rows(uf, mun, sep = ';')
+
+# create id variable to check when we join ibge id below
+crackdown2 %<>% mutate(operation.id = 1:nrow(crackdown2))
 
 # find ibge id for crackdown2
