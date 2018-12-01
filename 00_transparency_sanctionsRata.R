@@ -76,6 +76,9 @@ pdf.names <- rde %>%
 # write to disk
 save(rde, file = '00_rde.Rda')
 
+# remove unnecessary objects
+rm(pdf.names)
+
 ################################################################################
 # load data on police cooperation with CGU
 # import from avis, ferraz, and finan (2018) @ the jpe (2003-2015)
@@ -106,15 +109,15 @@ crackdown2.3 <- crackdown2 %>%
 
 # fill states in manually
 crackdown2.3$uf <- c('MS;MS;PR;PR;SP;SP', 'PB;PB;PB;RN;PE', 'MS;MT;MT;SP',
-  'MA;MA;TO;TO;TO', 'MA;MA;TO;TO;TO', 'GO;GO;GO;PR;PR;PR;DF',
+  'MA;MA;TO;TO;GO', 'MA;MA;TO;TO;GO', 'GO;GO;GO;PR;PR;SC;DF',
   'PR;PR;PR;PR;PR;PR;RJ;RJ', 'AL;AL;AL;AL;AL;AL;AL;AL;AL;AL;AL;AL;PE;PE',
-  'PR;PR;MS;MS;RN', 'MG;MG;MG;MG;MG;GO;GO', 'SC;SC;DF')
+  'PR;PR;MS;MS;RN', 'MG;MG;MG;GO;MG;MG;MG', 'SC;SC;DF')
 
 # bind them together
 crackdown2 <- rbind(crackdown2.1, crackdown2.2, crackdown2.3)
 
 # remove unnecessary files
-rm(list = objects(pattern = '2\\.'))
+# rm(list = objects(pattern = '2\\.'))
 
 # expand rows by the number of municipalities audited
 crackdown2 %<>% separate_rows(uf, mun, sep = ';')
@@ -122,4 +125,67 @@ crackdown2 %<>% separate_rows(uf, mun, sep = ';')
 # create id variable to check when we join ibge id below
 crackdown2 %<>% mutate(operation.id = 1:nrow(crackdown2))
 
-# find ibge id for crackdown2
+# find ibge id for crackdown2 municipalities
+# create abbreviation for IBGE states
+fullname <- ibge.dataset %$% unique(UF) %>% sort()
+partname <- c('AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT',
+              'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO',
+              'RR', 'SC', 'SP', 'SE', 'TO')
+
+# create dataset
+states <- tibble(fullname, partname)
+
+# merge state IDs onto ibge data, convert case in municipality name, change
+# encoding before fuzzy matching with crackdown dataset
+ibge.dataset %<>%
+  left_join(states, by = c('UF' = 'fullname')) %>%
+  mutate(mun = str_to_title(NomeMunic), uf = partname) %>%
+  mutate(mun = stringi::stri_trans_general(mun, 'Latin-ASCII')) %>%
+  select(1:5, uf, mun, everything())
+
+# change encoding before fuzzy matching with ibge dataset
+crackdown2 %<>%
+  mutate(mun = stringi::stri_trans_general(mun, 'Latin-ASCII')) %>%
+  select(1:2, uf, mun, everything())
+
+# run fuzzy match on municipality name and compute levenshtein distance. this
+# process yields 1-to-many matches since there's no match on states. max lv
+# distance is two because anything beyond one lv distance becomes too messy.
+crackdown.fuzzy <- crackdown2 %>%
+  fuzzyjoin::stringdist_left_join(ibge.dataset, by = c('mun'), max_dist = 2,
+  distance_col = 'distance', method = 'lv')
+
+# filter down to within-state matches before manually solving the last few
+# municipalities with no match
+crackdown.fuzzy %<>%
+  filter(uf.x == uf.y) %>%
+  arrange(distance) %>%
+  select(1:4, uf.y, mun.y, distance, everything())
+
+# solve easier conflicts
+crackdown.easy <- crackdown.fuzzy %$%
+  table(operation.id) %>%
+  .[. == 1] %>%
+  dimnames() %>%
+  unlist() %>%
+  {filter(crackdown.fuzzy, operation.id %in% .)} %>%
+  select(operation.id, everything()) %>%
+  arrange(operation.id, distance)
+
+# # (manually) check for problems
+# crackdown.easy %>% View()
+# one municipality's name was misspelled (lagoa do carmo == lagoa do carro)
+
+# solve harder conflicts
+crackdown.hard <- crackdown.fuzzy %$%
+  table(operation.id) %>%
+  .[. > 1] %>%
+  dimnames() %>%
+  unlist() %>%
+  {filter(crackdown.fuzzy, operation.id %in% .)} %>%
+  filter(distance == 0) %>%
+  select(operation.id, everything())
+
+# operations found
+operations.found <- c(crackdown.easy$operation.id, crackdown.hard$operation.id)
+
