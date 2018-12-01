@@ -79,5 +79,41 @@ save(rde, file = '00_rde.Rda')
 crackdown1 <- haven::read_stata('table4-1.dta')
 
 # import from cgu (2016-2018)
-crackdown2 <- read_excel('Operacoes_Especiais_20181001.xlsx')
+crackdown2 <- read_excel('Operacoes_Especiais_20181001.xlsx') %>%
+              filter(!(is.na(str_count(uf, ';')) | is.na(str_count(mun, ';'))))
 
+# fix the number of state and municipality entries for each crackdown operation
+# split sample where everything is correct
+crackdown2.1 <- crackdown2 %>%
+  filter(!is.na(mun)) %>%
+  filter(str_count(uf, ';') == str_count(mun, ';'))
+
+# split sample where all municipalities are in the same state
+crackdown2.2 <- crackdown2 %>%
+  filter(!is.na(mun)) %>%
+  filter(str_count(uf, ';') < str_count(mun, ';')) %>%
+  filter(str_count(uf, ';') == 0) %>%
+  mutate(uf = paste0(uf, strrep(paste0(';', uf), str_count(mun, ';'))))
+
+# split sample for the case where there is mix of municipalities and states
+crackdown2.3 <- crackdown2 %>%
+  filter(!is.na(mun)) %>%
+  filter(str_count(uf, ';') < str_count(mun, ';')) %>%
+  filter(str_count(uf, ';') > 0)
+
+# fill states in manually
+crackdown2.3$uf <- c('MS;MS;PR;PR;SP;SP', 'PB;PB;PB;RN;PE', 'MS;MT;MT;SP',
+  'MA;MA;TO;TO;TO', 'MA;MA;TO;TO;TO', 'GO;GO;GO;PR;PR;PR;DF',
+  'PR;PR;PR;PR;PR;PR;RJ;RJ', 'AL;AL;AL;AL;AL;AL;AL;AL;AL;AL;AL;AL;PE;PE',
+  'PR;PR;MS;MS;RN', 'MG;MG;MG;MG;GO;GO;GO', 'SC;SC;DF')
+
+# bind them together
+crackdown2 <- rbind(crackdown2.1, crackdown2.2, crackdown2.3)
+
+# remove unnecessary files
+rm(list = objects(pattern = '2\\.'))
+
+# expand rows by the number of municipalities audited
+crackdown2 %<>% separate_rows(uf, mun, sep = ';')
+
+# find ibge id for crackdown2
