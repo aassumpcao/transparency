@@ -207,85 +207,56 @@ crackdown2.3 <- crackdown2 %>%
 
 # fill states in manually
 crackdown2.3$uf <- c('MS;MS;PR;PR;SP;SP', 'PB;PB;PB;RN;PE', 'MS;MT;MT;SP',
-  'MA;MA;TO;TO;TO', 'MA;MA;TO;TO;TO', 'GO;GO;GO;PR;PR;PR;DF',
+  'MA;MA;TO;TO;GO', 'MA;MA;TO;TO;GO', 'GO;GO;GO;PR;PR;SC;DF',
   'PR;PR;PR;PR;PR;PR;RJ;RJ', 'AL;AL;AL;AL;AL;AL;AL;AL;AL;AL;AL;AL;PE;PE',
-  'PR;PR;MS;MS;RN', 'MG;MG;MG;MG;GO;GO;GO', 'SC;SC;DF')
-
-crackdown.operation <- rbind(crackdown2.1, crackdown2.2, crackdown2.3)
-
-crackdown2
-
-# create id variable
-crackdown2$id <- 1:nrow(crackdown2)
+  'PR;PR;MS;MS;RN', 'MG;MG;MG;GO;MG;GO;GO', 'SC;SC;DF')
 
 
-
-# create abbreviation for IBGE states
-fullname <- ibge.dataset %$% unique(UF) %>% sort()
-partname <- c('AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT',
-              'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO',
-              'RR', 'SC', 'SP', 'SE', 'TO')
-
-# create dataset
-states <- tibble(fullname, partname)
-
-# merge state IDs onto ibge data, convert case in municipality name, change
-# encoding before fuzzy matching with crackdown dataset
-ibge.dataset %<>%
-  left_join(states, by = c('UF' = 'fullname')) %>%
-  mutate(mun = str_to_title(NomeMunic), uf = partname) %>%
-  mutate(mun = stringi::stri_trans_general(mun, 'Latin-ASCII')) %>%
-  select(1:5, uf, mun, everything())
-
-# change encoding before fuzzy matching with ibge dataset
-crackdown2 %<>%
-  mutate(mun = stringi::stri_trans_general(mun, 'Latin-ASCII')) %>%
-  select(1:2, uf, mun, everything())
-
-# run fuzzy match on municipality name and compute levenshtein distance. this
-# process yields 1-to-many matches since there's no match on states. max lv
-# distance is two because anything beyond one lv distance becomes too messy.
-crackdown2.0 <- crackdown2 %>%
-  fuzzyjoin::stringdist_left_join(ibge.dataset, by = c('mun'), max_dist = 2,
-  distance_col = 'distance', method = 'lv')
-
-# filter down to within-state matches before manually solving the last few
-# municipalities with no match
-crackdown2.0 %<>%
-  filter(uf.x == uf.y) %>%
-  arrange(distance) %>%
-  select(1:4, uf.y, mun.y, distance, everything())
-
-# find operations with missing ids
-missing.id <- setdiff(1:282, unique(crackdown2.0$operation.id))
-
-# solve easier conflicts
-crackdown.easy <- crackdown2.0 %$%
-  table(operation.id) %>%
-  .[. == 1] %>%
-  dimnames() %>%
+# operations remaining
+operations.remaining <- crackdown2 %>%
+  filter(!(operation.id %in% operations.found)) %>%
+  slice(-c(1:4, 6, 8:15)) %>%
+  select(operation.id) %>%
   unlist() %>%
-  {filter(crackdown2.0, operation.id %in% .)} %>%
-  select(operation.id, everything()) %>%
-  arrange(operation.id, distance)
-
-# # (manually) check for problems
-# crackdown.easy %>% View()
-# one municipality's name was misspelled (lagoa do carmo == lagoa do carro)
-
-# solve harder conflicts
-crackdown.hard <- crackdown2.0 %$%
-  table(operation.id) %>%
-  .[. > 1] %>%
-  dimnames() %>%
-  unlist() %>%
-  {filter(crackdown2.0, operation.id %in% .)} %>%
-  filter(distance == 0) %>%
-  select(operation.id, everything())
+  as.vector()
 
 
 
-ibge.dataset %>%
-  filter(uf == 'GO') %>%
-  View()
 
+232+35
+
+
+# pato branco, pr == 4118501;411850
+# bom princípio, rs == 4302352;430235
+# limoeiro do anadia, al == 2700201;270020
+# sao luiz do quitunde, al == 2708501;270850
+# campo grande, rj (rio de janerio, rj) == 3304557;330455
+# Abaetetuba, pa == 15000107;150010
+# barueri, sp == 3505708;350570
+# joca claudino, pb == 2513653; 251365
+# balneário arroio do silva, sc == 4201950;420195
+
+
+# 35 municipios
+# Barra do Choça, ba
+# Cândido Sales, ba
+# Condeúba, ba
+# Encruzilhada, ba
+# Ribeirão do Largo, ba
+# Gandu, ba
+# Itambé, ba
+# Jequié, ba
+# Piripá, ba
+# Vitória da Conquista, ba
+# Tanhaçu, ba
+# Ipirá, ba
+# Salvador, ba
+# Barreiras, ba
+# Luís Eduardo Magalhães, ba
+# Formosa do Rio Preto, ba
+# mata verde, mg
+
+
+
+# remove unnecessary objects
+rm(list = objects(pattern = 'name|states|fuzzy'))

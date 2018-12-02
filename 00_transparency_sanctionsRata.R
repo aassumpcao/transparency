@@ -92,11 +92,13 @@ crackdown2 <- read_excel('Operacoes_Especiais_20181001.xlsx') %>%
 # split sample where everything is correct
 crackdown2.1 <- crackdown2 %>%
   filter(!is.na(mun)) %>%
+  filter(!str_detect(mun, 'Estado')) %>%
   filter(str_count(uf, ';') == str_count(mun, ';'))
 
 # split sample where all municipalities are in the same state
 crackdown2.2 <- crackdown2 %>%
   filter(!is.na(mun)) %>%
+  filter(!str_detect(mun, 'Estado')) %>%
   filter(str_count(uf, ';') < str_count(mun, ';')) %>%
   filter(str_count(uf, ';') == 0) %>%
   mutate(uf = paste0(uf, strrep(paste0(';', uf), str_count(mun, ';'))))
@@ -104,6 +106,7 @@ crackdown2.2 <- crackdown2 %>%
 # split sample for the case where there is mix of municipalities and states
 crackdown2.3 <- crackdown2 %>%
   filter(!is.na(mun)) %>%
+  filter(!str_detect(mun, 'Estado')) %>%
   filter(str_count(uf, ';') < str_count(mun, ';')) %>%
   filter(str_count(uf, ';') > 0)
 
@@ -124,6 +127,25 @@ crackdown2 %<>% separate_rows(uf, mun, sep = ';')
 
 # create id variable to check when we join ibge id below
 crackdown2 %<>% mutate(operation.id = 1:nrow(crackdown2))
+
+# correct municipality names and states
+crackdown2[64,  'uf' ] <- 'RS'
+crackdown2[84,  'mun'] <- 'Balneário Arroio do Silva'
+crackdown2[109, 'mun'] <- 'Santarém'
+crackdown2[138, 'mun'] <- 'Barueri'
+crackdown2[153, 'uf' ] <- 'PR'
+crackdown2[194, 'mun'] <- 'Abaetetuba'
+crackdown2[242, c('uf', 'mun')] <- c('RJ', 'Rio de Janeiro')
+crackdown2[247, 'mun'] <- 'São Luis do Quitunde'
+crackdown2[248, 'mun'] <- 'Anadia'
+
+# fix one 2017 operation (lateronis) that occurred in multiple towns
+crackdown2 %<>%
+  filter(str_detect(nome_op, 'Lateronis')) %>%
+  mutate(uf = c('BA;BA;BA;BA;BA;BA'), mun = c(
+    'Cândido Sales;Encruzilhada;Itambé;Piripá;Ipirá;Formosa do Rio Preto')) %>%
+  separate_rows(uf, mun, sep = ';') %>%
+  {bind_rows(filter(crackdown2, !str_detect(nome_op, 'Lateronis')), .)}
 
 # find ibge id for crackdown2 municipalities
 # create abbreviation for IBGE states
@@ -183,9 +205,14 @@ crackdown.hard <- crackdown.fuzzy %$%
   dimnames() %>%
   unlist() %>%
   {filter(crackdown.fuzzy, operation.id %in% .)} %>%
-  filter(distance == 0) %>%
+  filter(distance == 0 | str_detect(mun.y, '^(Goiania)')) %>%
   select(operation.id, everything())
 
-# operations found
-operations.found <- c(crackdown.easy$operation.id, crackdown.hard$operation.id)
+# obs: there are three operations not investigating municipalities that are
+#      still in the crackdown2 dataset.
 
+# bind all
+crackdown2 <- rbind(crackdown.easy, crackdown.hard)
+
+# remove unnecessary objects
+rm(list = objects(pattern = 'name|states|crackdown(2)?\\.'))
