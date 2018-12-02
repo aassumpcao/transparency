@@ -1,0 +1,66 @@
+################################################################################
+# active passive transparency paper
+# merge and create panel of municipality data
+
+# this script merges data across active/passive transparency, performance, and
+# sanctions.
+# by andre.assumpcao@gmail.com
+
+# import statements
+library(here)
+library(tidyverse)
+library(magrittr)
+
+# load datasets
+load('00_audit.Rda')
+load('00_crackdown.Rda')
+load('00_ebt.Rda')
+load('00_performance.Rda')
+load('00_rde.Rda')
+
+################################################################################
+# wrangle each dataset separately. the goal is to create data in panel format
+# for all variables and municipalities in this sample
+
+# start off with crackdown operations
+crackdown %<>%
+  transmute(state.id = substr(mun.id, 1, 2), mun.id = as.character(mun.id),
+    crackdown.year = crackdown.year, crackdown.outcome = crackdown.outcome,
+    conviction.outcome = conviction.outcome)
+
+
+# include police investigations
+rde %<>%
+  transmute(state.id = substr(Cod_Mun_IBGE, 1, 2), mun.id = Cod_Mun_IBGE,
+    rde.year = as.integer(rde.year), rde.outcome = 1)
+
+# include performance variables
+performance %<>%
+  mutate(mdp.outcome2003 = NA_real_, mdp.outcome2006 = NA_real_,
+    mdp.outcome2007 = NA_real_, mdp.outcome2010 = NA_real_,
+    mdp.outcome2011 = NA_real_, mdp.outcome2006 = NA_real_,
+    mdp.outcome2014 = NA_real_, mdp.outcome2016 = NA_real_,
+    mdp.outcome2017 = NA_real_,
+    mdp.outcome2018 = NA_real_) %>%
+  gather(contains('mdp.outcome'), key = 'mdp.year', value ='mdp.outcome') %>%
+  mutate(mdp.year = as.integer(str_sub(mdp.year, -4, -1)),
+    state.id = substr(mun.id, 1, 2)) %>%
+  select(state.id, mun.id, mdp.year, mdp.outcome)
+
+# include ebt variables
+ebt %<>%
+  filter(nchar(mun.id) > 2) %>%
+  mutate_at(
+    vars(matches('outcome')), funs(ifelse(. %in% c('Sim', 'SIM'), TRUE, FALSE))
+  ) %>%
+  transmute(state.id = substr(mun.id, 1, 2), mun.id = mun.id,
+    ebt.year = case_when(ebt.id == '1' ~ 2015, ebt.id == '2' ~ 2016,
+      ebt.id == '3' ~ 2017),
+    ebttime.outcome = ifelse(health.outcome1 | education.outcome1 |
+      social.outcome1 | information.outcome1, 1, 0),
+    ebtquality.outcome = ifelse(health.outcome2 | education.outcome2 |
+      social.outcome2 | information.outcome2, 1, 0)
+  )
+
+
+

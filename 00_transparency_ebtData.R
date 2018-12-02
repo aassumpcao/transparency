@@ -12,11 +12,8 @@
 library(here)
 library(tidyverse)
 library(magrittr)
-library(readxl)
 
 # load datasets
-load('audit.dataset.Rda')
-load('ibge.dataset.Rda')
 load('brasil.transparente.Rda')
 
 ################################################################################

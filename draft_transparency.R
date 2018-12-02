@@ -214,49 +214,67 @@ crackdown2.3$uf <- c('MS;MS;PR;PR;SP;SP', 'PB;PB;PB;RN;PE', 'MS;MT;MT;SP',
 
 # operations remaining
 operations.remaining <- crackdown2 %>%
-  filter(!(operation.id %in% operations.found)) %>%
+  filter(!(operation.id %in% operations.found)) %>% View()
   slice(-c(1:4, 6, 8:15)) %>%
   select(operation.id) %>%
   unlist() %>%
   as.vector()
 
+crackdown.easy %>%
+  filter(str_detect(nome_op, 'Betsa')) %>% View()
 
 
+
+crackdown2
 
 232+35
 
-
-# pato branco, pr == 4118501;411850
-# bom princípio, rs == 4302352;430235
-# limoeiro do anadia, al == 2700201;270020
-# sao luiz do quitunde, al == 2708501;270850
-# campo grande, rj (rio de janerio, rj) == 3304557;330455
-# Abaetetuba, pa == 15000107;150010
-# barueri, sp == 3505708;350570
-# joca claudino, pb == 2513653; 251365
-# balneário arroio do silva, sc == 4201950;420195
-
-
 # 35 municipios
-# Barra do Choça, ba
+
 # Cândido Sales, ba
-# Condeúba, ba
+
 # Encruzilhada, ba
-# Ribeirão do Largo, ba
-# Gandu, ba
+
 # Itambé, ba
-# Jequié, ba
+
 # Piripá, ba
-# Vitória da Conquista, ba
-# Tanhaçu, ba
+
+
 # Ipirá, ba
-# Salvador, ba
-# Barreiras, ba
-# Luís Eduardo Magalhães, ba
+
 # Formosa do Rio Preto, ba
-# mata verde, mg
+
+
+# create vector of municipalities
+mun.id <- ibge.dataset %>% select(Codmundv) %>%  unlist() %>%  as.vector()
+
+# create vector of crackdown years
+crackdown.year <- rep(2003:2018, length(mun.id))
+
+# expand vector of municipalities
+mun.id %<>% rep(each = length(2003:2018))
+
+# create dataset
+crackdown <- tibble(mun.id = mun.id, crackdown.year = crackdown.year)
+
+# join everything
+crackdown %>%
+  left_join(mutate(crackdown1, year = as.integer(year)),
+    by = c('mun.id' = 'cod_munic', 'crackdown.year' = 'year')) %>%
+  mutate(crackdown.outcome = operacoes, conviction.outcome = dconviction) %>%
+  select(1:2, 8:9) %>%
+  left_join(mutate(crackdown2, ano = as.integer(ano), crackdown = 1),
+    by = c('mun.id' = 'Codmundv', 'crackdown.year' = 'ano')) %>%
+  mutate(crackdown.outcome = ifelse(!is.na(crackdown),1, crackdown.outcome)) %>%
+  mutate(crackdown.outcome = replace_na(crackdown.outcome, 0))
 
 
 
-# remove unnecessary objects
-rm(list = objects(pattern = 'name|states|fuzzy'))
+
+# include police investigations
+rde %<>%
+  transmute(state.id = substr(Cod_Mun_IBGE, 1, 2), mun.id = Cod_Mun_IBGE,
+    rde.year = as.integer(rde.year))
+
+# include performance variables
+performance
