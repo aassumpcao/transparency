@@ -33,16 +33,13 @@ rde %<>%
   transmute(state.id = substr(Cod_Mun_IBGE, 1, 2), mun.id = Cod_Mun_IBGE,
     rde.year = as.integer(rde.year), rde.outcome = 1)
 
+# create multiple empty vars in performance dataset
+years <- c(2003, 2006, 2007, 2010, 2011, 2014, 2016, 2017, 2018)
+performance[, paste0('mdp.outcome', years)] <- NA_real_
+
 # include performance variables
-performance %<>%
-  mutate(
-    mdp.outcome2003 = NA_real_, mdp.outcome2006 = NA_real_,
-    mdp.outcome2007 = NA_real_, mdp.outcome2010 = NA_real_,
-    mdp.outcome2011 = NA_real_, mdp.outcome2006 = NA_real_,
-    mdp.outcome2014 = NA_real_, mdp.outcome2016 = NA_real_,
-    mdp.outcome2017 = NA_real_, mdp.outcome2018 = NA_real_
-  ) %>%
-  gather(contains('mdp.outcome'), key = 'mdp.year', value ='mdp.outcome') %>%
+performance %>%
+  gather(contains('mdp.outcome'), key = 'mdp.year', value = 'mdp.outcome') %>%
   mutate(mdp.year = as.integer(str_sub(mdp.year, -4, -1)),
     state.id = substr(mun.id, 1, 2)) %>%
   select(state.id, mun.id, mdp.year, mdp.outcome)
@@ -55,7 +52,7 @@ ebt %<>%
   ) %>%
   transmute(state.id = substr(mun.id, 1, 2), mun.id = mun.id,
     ebt.year = case_when(ebt.id == '1' ~ 2015, ebt.id == '2' ~ 2016,
-      ebt.id == '3' ~ 2017), ebt.treament = 1,
+      ebt.id == '3' ~ 2017), ebt.treatment = 1,
     ebttime.outcome = ifelse(health.outcome1 | education.outcome1 |
       social.outcome1 | information.outcome1, 1, 0),
     ebtquality.outcome = ifelse(health.outcome2 | education.outcome2 |
@@ -70,12 +67,25 @@ audit %<>%
   group_by(mun.id, audit.id) %>%
   summarize(state.id = first(state.id), audit.year = first(audit.year),
     audit.amount = sum(as.double(so.amount), na.rm = TRUE),
-    mismanagement.outcome = sum(corruption.outcome == 0),
+    mismanagement.outcome = sum(corruption.outcome == 0), audit.treatment = 1,
     corruption.outcome = sum(corruption.outcome == 1), count.outcome = n()) %>%
   ungroup() %>%
   select(contains('id'), contains('audit'), contains('outcome'))
 
 ################################################################################
 # merge all data into one panel
+performance %<>%
+  left_join(rde, by = c('mun.id', 'mdp.year' = 'rde.year')) %>%
+  left_join(ebt, by = c('mun.id', 'mdp.year' = 'ebt.year')) %>%
+  left_join(audit, by = c('mun.id', 'mdp.year' = 'audit.year')) %>%
+  left_join(crackdown, by = c('mun.id', 'mdp.year' = 'crackdown.year')) %>%
+  select(-matches('\\.id\\.')) %>%
+  mutate(state.id = substr(mun.id, 1, 2)) %>%
+  select(state.id, mun.id, audit.id, year = mdp.year, matches('treatment'),
+     mdp.outcome, crackdown.outcome, conviction.outcome, everything()) %>%
+  mutate_at(vars(6, 8, 9), funs(replace_na(., 0))) %>%
+  mutate(ebt.treatment = ifelse(year < 2012, 0, 1)) %>%
+  filter(year %in% c(2006:2018) & !is.na(mdp.outcome))
+
 
 

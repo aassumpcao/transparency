@@ -13,6 +13,9 @@ library(tidyverse)
 library(magrittr)
 library(readxl)
 
+# load dataset
+load('ibge.dataset.Rda')
+
 ################################################################################
 # unzip all files
 files  <- list.files(pattern = 'munic20(0[4-9]|1[1-7])?\\.zip')
@@ -92,7 +95,12 @@ performance %<>%
     mdp.outcome2008 = `2008`, mdp.outcome2009 = `2009`,
     mdp.outcome2012 = `2012`, mdp.outcome2013 = `2013`,
     mdp.outcome2015 = `2015`
-  )
+  ) %>%
+  left_join(
+    mutate(ibge.dataset, mun.id = as.character(Codmun)), by = c('mun.id')
+  ) %>%
+  select(mun.id = Codmundv, 2:8) %>%
+  mutate(mun.id = as.character(mun.id))
 
 # write to disk
 save(performance, file = '00_performance.Rda')
