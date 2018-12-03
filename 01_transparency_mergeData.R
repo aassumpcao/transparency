@@ -75,6 +75,40 @@ audit %<>%
 
 ################################################################################
 # merge all data into one panel
+# join active/passive transparency outcomes data: ebt and audits
+transparency <- ebt %>%
+  full_join(audit, by = c('mun.id')) %>%
+  mutate(obs.year = ifelse(!is.na(audit.year), audit.year, ebt.year),
+    ebttime.outcome = ifelse(obs.year < 2012, NA, ebttime.outcome),
+    ebtquality.outcome = ifelse(obs.year < 2012, NA, ebtquality.outcome),
+    obs.id = row_number(obs.year))
+
+# join performance outcomes onto active/passive transparency data
+transparency %<>%
+  left_join(performance, by = c('mun.id')) %>%
+  group_by(obs.id) %>%
+  select(state.id, matches('\\.id$'), matches('year'), matches('outcome')) %>%
+  filter(abs(obs.year - mdp.year) == min(abs(obs.year - mdp.year))) %>%
+  ungroup() %>%
+  filter(!duplicated(obs.id)) %>%
+  select(obs.id, state.id, mun.id, everything(), -audit.year, -ebt.year)
+
+# join crackdown/conviction and rde datasets
+sanctions <- crackdown %>%
+  left_join(rde, by = c('mun.id', 'crackdown.year' = 'rde.year')) %>%
+  mutate(rde.outcome = ifelse(is.na(rde.outcome), 0, rde.outcome)) %>%
+  select(-state.id.y) %>%
+  mutate(conviction.outcome = replace_na(conviction.outcome, 0)) %>%
+  mutate(sanction.outcome = ifelse(crackdown.outcome == 1 |
+    conviction.outcome == 1 | rde.outcome == 1, 1, 0)) %>%
+  rename(state.id = state.id.x)
+
+# join sanctions onto transparency dataset
+transparency %>%
+  left_join(sanctions, by = c('mun.id', 'obs.year' = 'crackdown.year')) %>%
+  mutate(audit.treatment = ifelse(!is.na(audit.id), 1, 0)) %>%
+  mutate(ebt.treatment   = ifelse( obs.year < 2012, 0, 1)) %>%
+  select(state.id = state.id.x, 2:7, matches('trea'), everything(), -state.id.y)
 
 
 

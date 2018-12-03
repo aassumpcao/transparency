@@ -341,19 +341,23 @@ performance %$% table(audit.treatment, mdp.outcome)
 
 rde %$% table(rde.year)
 
+transparency %>% names()
 
-# join active and passive outcomes data: ebt and audits
-transparency <- ebt %>%
+# join active/passive transparency outcomes data: ebt and audits
+ebt %>%
   full_join(audit, by = c('mun.id')) %>%
-  mutate(audit.treatment = ifelse(is.na(audit.treatment), 0, 1),
-    ebt.treatment = ifelse(is.na(audit.year)|audit.year > 2011, 1, 0),
-    obs.year = ifelse(!is.na(audit.year), audit.year, ebt.year))
+  mutate(obs.year = ifelse(!is.na(audit.year), audit.year, ebt.year),
+    ebttime.outcome = ifelse(obs.year < 2012, NA, ebttime.outcome),
+    ebtquality.outcome = ifelse(obs.year < 2012, NA, ebtquality.outcome),
+    obs.id = row_number(obs.year))
 
-# join on performance outcomes
+
+# join sanctions onto transparency dataset
 transparency %>%
-  left_join(performance, by = c('mun.id')) %>%
-  mutate(
-    year.distance = ifelse(obs.year != mdp.year, abs(obs.year - mdp.year), 0)) %>%
-  table(year.distance)
+  left_join(sanctions, by = c('mun.id', 'obs.year' = 'crackdown.year')) %>%
+  mutate(audit.treatment = ifelse(!is.na(audit.id), 1, 0)) %>%
+  mutate(ebt.treatment   = ifelse( obs.year < 2012, 0, 1)) %>%
+  select(state.id = state.id.x, 2:7, matches('trea'), everything(), -state.id.y) %$%
+  table(ebt.treatment, obs.year)
 
-
+transparency %$% table(sanction.outcome, obs.year)
