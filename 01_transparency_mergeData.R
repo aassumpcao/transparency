@@ -28,20 +28,20 @@ crackdown %<>%
     crackdown.year = crackdown.year, crackdown.outcome = crackdown.outcome,
     conviction.outcome = conviction.outcome)
 
-
-# include police investigations
+# include police investigations variables
 rde %<>%
   transmute(state.id = substr(Cod_Mun_IBGE, 1, 2), mun.id = Cod_Mun_IBGE,
     rde.year = as.integer(rde.year), rde.outcome = 1)
 
 # include performance variables
 performance %<>%
-  mutate(mdp.outcome2003 = NA_real_, mdp.outcome2006 = NA_real_,
+  mutate(
+    mdp.outcome2003 = NA_real_, mdp.outcome2006 = NA_real_,
     mdp.outcome2007 = NA_real_, mdp.outcome2010 = NA_real_,
     mdp.outcome2011 = NA_real_, mdp.outcome2006 = NA_real_,
     mdp.outcome2014 = NA_real_, mdp.outcome2016 = NA_real_,
-    mdp.outcome2017 = NA_real_,
-    mdp.outcome2018 = NA_real_) %>%
+    mdp.outcome2017 = NA_real_, mdp.outcome2018 = NA_real_
+  ) %>%
   gather(contains('mdp.outcome'), key = 'mdp.year', value ='mdp.outcome') %>%
   mutate(mdp.year = as.integer(str_sub(mdp.year, -4, -1)),
     state.id = substr(mun.id, 1, 2)) %>%
@@ -55,12 +55,27 @@ ebt %<>%
   ) %>%
   transmute(state.id = substr(mun.id, 1, 2), mun.id = mun.id,
     ebt.year = case_when(ebt.id == '1' ~ 2015, ebt.id == '2' ~ 2016,
-      ebt.id == '3' ~ 2017),
+      ebt.id == '3' ~ 2017), ebt.treament = 1,
     ebttime.outcome = ifelse(health.outcome1 | education.outcome1 |
       social.outcome1 | information.outcome1, 1, 0),
     ebtquality.outcome = ifelse(health.outcome2 | education.outcome2 |
-      social.outcome2 | information.outcome2, 1, 0)
-  )
+      social.outcome2 | information.outcome2, 1, 0))
 
+# include audit data
+audit %<>%
+  transmute(state.id = substr(mun.id, 1, 2), mun.id = mun.id,
+    audit.year = as.integer(audit.year), audit.id = audit.id,
+    corruption.outcome = ifelse(str_detect(audit.outcome, 'Formal'), 0, 1),
+    so.id = so.number, so.amount = so.amount) %>%
+  group_by(mun.id, audit.id) %>%
+  summarize(state.id = first(state.id), audit.year = first(audit.year),
+    audit.amount = sum(as.double(so.amount), na.rm = TRUE),
+    mismanagement.outcome = sum(corruption.outcome == 0),
+    corruption.outcome = sum(corruption.outcome == 1), count.outcome = n()) %>%
+  ungroup() %>%
+  select(contains('id'), contains('audit'), contains('outcome'))
+
+################################################################################
+# merge all data into one panel
 
 

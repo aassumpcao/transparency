@@ -66,7 +66,7 @@ audit.dataset %<>% filter(!(Ed_Sorteio %in% paste0('V0', 1:4)))
 audit <- audit.dataset %>%
   select(-Municipio, -UF, -descricao_sumaria) %>%
   select(mun.id = ibgeID, state.id = stateID, mun.name = munName,
-    audit.id = Ed_Sorteio, audit.year = Ano_Sorteio,
+    audit.id = Ed_Sorteio, audit.year = Ano_Sorteio, so.number = Nr_OS,
     so.amount = Montante_fisc, so.min = Orgao_Sup, so.program = Funcao,
     so.subprogram = Subfuncao, program.name = Programa, subprogram.name = Acao,
     audit.outcome = Tipo_constatacao) %>%
