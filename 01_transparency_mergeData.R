@@ -3,8 +3,13 @@
 # merge and create panel of municipality data
 
 # this script merges data across active/passive transparency, performance, and
-# sanctions.
+# sanctions. it creates an incomplete panel of brazilian municipalities part of
+# the paper's sample.
+
 # by andre.assumpcao@gmail.com
+
+# remove everything
+rm(list = ls())
 
 # import statements
 library(here)
@@ -33,12 +38,8 @@ rde %<>%
   transmute(state.id = substr(Cod_Mun_IBGE, 1, 2), mun.id = Cod_Mun_IBGE,
     rde.year = as.integer(rde.year), rde.outcome = 1)
 
-# create multiple empty vars in performance dataset
-years <- c(2003, 2006, 2007, 2010, 2011, 2014, 2016, 2017, 2018)
-performance[, paste0('mdp.outcome', years)] <- NA_real_
-
 # include performance variables
-performance %>%
+performance %<>%
   gather(contains('mdp.outcome'), key = 'mdp.year', value = 'mdp.outcome') %>%
   mutate(mdp.year = as.integer(str_sub(mdp.year, -4, -1)),
     state.id = substr(mun.id, 1, 2)) %>%
@@ -61,9 +62,9 @@ ebt %<>%
 # include audit data
 audit %<>%
   transmute(state.id = substr(mun.id, 1, 2), mun.id = mun.id,
-    audit.year = as.integer(audit.year), audit.id = audit.id,
+    audit.id = audit.id, audit.year = as.integer(audit.year), so.id = so.number,
     corruption.outcome = ifelse(str_detect(audit.outcome, 'Formal'), 0, 1),
-    so.id = so.number, so.amount = so.amount) %>%
+    so.amount = so.amount) %>%
   group_by(mun.id, audit.id) %>%
   summarize(state.id = first(state.id), audit.year = first(audit.year),
     audit.amount = sum(as.double(so.amount), na.rm = TRUE),
@@ -74,18 +75,6 @@ audit %<>%
 
 ################################################################################
 # merge all data into one panel
-performance %<>%
-  left_join(rde, by = c('mun.id', 'mdp.year' = 'rde.year')) %>%
-  left_join(ebt, by = c('mun.id', 'mdp.year' = 'ebt.year')) %>%
-  left_join(audit, by = c('mun.id', 'mdp.year' = 'audit.year')) %>%
-  left_join(crackdown, by = c('mun.id', 'mdp.year' = 'crackdown.year')) %>%
-  select(-matches('\\.id\\.')) %>%
-  mutate(state.id = substr(mun.id, 1, 2)) %>%
-  select(state.id, mun.id, audit.id, year = mdp.year, matches('treatment'),
-     mdp.outcome, crackdown.outcome, conviction.outcome, everything()) %>%
-  mutate_at(vars(6, 8, 9), funs(replace_na(., 0))) %>%
-  mutate(ebt.treatment = ifelse(year < 2012, 0, 1)) %>%
-  filter(year %in% c(2006:2018) & !is.na(mdp.outcome))
 
 
 

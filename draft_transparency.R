@@ -338,4 +338,22 @@ performance %$% table(audit.treatment, conviction.outcome)
 performance %$% table(ebt.treatment, conviction.outcome)
 performance %$% table(crackdown.outcome, conviction.outcome)
 performance %$% table(audit.treatment, mdp.outcome)
-performance %$% table(ebt.treatment, mdp.outcome)
+
+rde %$% table(rde.year)
+
+
+# join active and passive outcomes data: ebt and audits
+transparency <- ebt %>%
+  full_join(audit, by = c('mun.id')) %>%
+  mutate(audit.treatment = ifelse(is.na(audit.treatment), 0, 1),
+    ebt.treatment = ifelse(is.na(audit.year)|audit.year > 2011, 1, 0),
+    obs.year = ifelse(!is.na(audit.year), audit.year, ebt.year))
+
+# join on performance outcomes
+transparency %>%
+  left_join(performance, by = c('mun.id')) %>%
+  mutate(
+    year.distance = ifelse(obs.year != mdp.year, abs(obs.year - mdp.year), 0)) %>%
+  table(year.distance)
+
+
