@@ -46,7 +46,7 @@ performance %<>%
   select(state.id, mun.id, mdp.year, mdp.outcome)
 
 # include ebt variables
-ebt %<>%
+ebt %>%
   filter(nchar(mun.id) > 2) %>%
   mutate_at(
     vars(matches('outcome')), funs(ifelse(. %in% c('Sim', 'SIM'), TRUE, FALSE))
@@ -57,7 +57,10 @@ ebt %<>%
     ebttime.outcome = ifelse(health.outcome1 | education.outcome1 |
       social.outcome1 | information.outcome1, 1, 0),
     ebtquality.outcome = ifelse(health.outcome2 | education.outcome2 |
-      social.outcome2 | information.outcome2, 1, 0))
+      social.outcome2 | information.outcome2, 1, 0)) %>%
+  group_by(mun.id) %>%
+  filter(ebt.year == min(ebt.year))
+
 
 # include audit data
 audit %<>%
@@ -108,7 +111,8 @@ transparency %>%
   left_join(sanctions, by = c('mun.id', 'obs.year' = 'crackdown.year')) %>%
   mutate(audit.treatment = ifelse(!is.na(audit.id), 1, 0)) %>%
   mutate(ebt.treatment   = ifelse( obs.year < 2012, 0, 1)) %>%
-  select(state.id = state.id.x, 2:7, matches('trea'), everything(), -state.id.y)
+  select(state.id = state.id.x, 2:7, matches('trea'), everything(), -state.id.y) %>%
+  group_by(mun.id, obs.year)
 
 
 

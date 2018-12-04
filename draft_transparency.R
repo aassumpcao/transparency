@@ -344,20 +344,72 @@ rde %$% table(rde.year)
 transparency %>% names()
 
 # join active/passive transparency outcomes data: ebt and audits
-ebt %>%
-  full_join(audit, by = c('mun.id')) %>%
+transparency <- ebt %>%
+  full_join(audit, by = 'mun.id') %>%
   mutate(obs.year = ifelse(!is.na(audit.year), audit.year, ebt.year),
-    ebttime.outcome = ifelse(obs.year < 2012, NA, ebttime.outcome),
     ebtquality.outcome = ifelse(obs.year < 2012, NA, ebtquality.outcome),
-    obs.id = row_number(obs.year))
+    ebttime.outcome = ifelse(obs.year < 2012, NA, ebttime.outcome),
+    obs.id = row_number(obs.year)) %>%
+  group_by(mun.id, obs.year) %>%
+  filter(abs(obs.year - ebt.year) == min(abs(obs.year - ebt.year)))
+
+transparency %$% table(audit.treatment, ebt.treatment)
+
+audit %>% group_by(mun.id)
 
 
-# join sanctions onto transparency dataset
-transparency %>%
-  left_join(sanctions, by = c('mun.id', 'obs.year' = 'crackdown.year')) %>%
-  mutate(audit.treatment = ifelse(!is.na(audit.id), 1, 0)) %>%
-  mutate(ebt.treatment   = ifelse( obs.year < 2012, 0, 1)) %>%
-  select(state.id = state.id.x, 2:7, matches('trea'), everything(), -state.id.y) %$%
-  table(ebt.treatment, obs.year)
+#   1132 (audit unique municipalities)
+# + 1821 (@ unique municipalities in ebt data)
+# ------
+# = 2953
 
-transparency %$% table(sanction.outcome, obs.year)
+ebt %>% group_by(mun.id, ebt.id)
+
+
+setdiff(ebt$mun.id, audit$mun.id) %>% length()
+
+
+# define unique sets of audited municipalities and those before and after lai
+audited.mun <- audit %$% unique(mun.id)
+lai.mun     <- ebt   %$% unique(mun.id)
+
+# split audit dataset for before and after 2012
+audit.prelai  <- filter(audit, audit.year < 2012)
+audit.postlai <- filter(audit, audit.year > 2011)
+
+# spit ebt dataset for yes and no audit
+ebt.no  <- filter(ebt, !(mun.id %in% audited.mun))
+ebt.yes <- filter(ebt, mun.id %in% audited.mun)
+
+# audited before lai
+audit.prelai %>%
+  left_join(ebt, by = c('mun.id', 'audit.year' = 'ebt.year'))
+
+# audited after lai
+audit.postlai %>%
+  full_join(ebt.yes, by = 'mun.id') %>%
+  mutate(obs.year = ifelse(is.na(ebt.year), audit.year, ebt.year)) %>%
+  filter(obs.year <= min(ebt.year))
+
+
+# create prelai dataset, where there should be no matches
+audit.prelai %<>%
+  left_join(ebt, by = c('mun.id', 'audit.year' = 'ebt.year'))
+
+# create postlai dataset, where there should be multiple matches
+audit.postlai %<>%
+  full_join(ebt, by = 'mun.id') %>%
+  mutate(obs.year = ifelse(is.na(ebt.year), audit.year, ebt.year)) %>%
+  mutate(obs.id = row_number(obs.year))
+
+transparency <- bind_rows(audit.prelai, audit.postlai)
+
+
+transparency %$% table(is.na(corruption.outcome), ebt.year)
+
+
+audit.prelai %>% group_by(mun.id)
+audit.postlai %>% group_by(mun.id)
+
+ebt.no %>% group_by(mun.id)
+ebt.yes %>% group_by(mun.id)
