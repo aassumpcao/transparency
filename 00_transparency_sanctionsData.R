@@ -236,7 +236,7 @@ crackdown %<>%
   mutate(crackdown.outcome = replace_na(crackdown.outcome, 0))
 
 # remove unnecessary objects
-rm(list = objects(pattern = 'name|states|crackdown(.)+|mun\\.id'))
+rm(list = objects(pattern = 'name|states|crackdown(.)+|mun\\.id|rde|ibge'))
 
 # write to disk
 save(crackdown, file = '00_crackdown.Rda')

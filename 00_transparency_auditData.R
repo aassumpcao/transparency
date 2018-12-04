@@ -72,5 +72,8 @@ audit <- audit.dataset %>%
     audit.outcome = Tipo_constatacao) %>%
   mutate_all(as.character)
 
+# remove files
+rm(list = objects(pattern = '\\.|mun|stat|name|mis'))
+
 # write to disk
 save(audit, file = '00_audit.Rda')

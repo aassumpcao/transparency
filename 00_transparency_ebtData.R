@@ -33,5 +33,8 @@ ebt <- brasil.transparente %>%
     information.outcome2 = respondeu_pergunta_4) %>%
   mutate_all(as.character)
 
+# remove files
+rm(brasil.transparente)
+
 # write to disk
 save(ebt, file = '00_ebt.Rda')

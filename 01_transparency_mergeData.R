@@ -8,9 +8,6 @@
 
 # by andre.assumpcao@gmail.com
 
-# remove everything
-rm(list = ls())
-
 # import statements
 library(here)
 library(tidyverse)
@@ -46,7 +43,7 @@ performance %<>%
   select(state.id, mun.id, mdp.year, mdp.outcome)
 
 # include ebt variables
-ebt %>%
+ebt %<>%
   filter(nchar(mun.id) > 2) %>%
   mutate_at(
     vars(matches('outcome')), funs(ifelse(. %in% c('Sim', 'SIM'), TRUE, FALSE))
@@ -57,10 +54,7 @@ ebt %>%
     ebttime.outcome = ifelse(health.outcome1 | education.outcome1 |
       social.outcome1 | information.outcome1, 1, 0),
     ebtquality.outcome = ifelse(health.outcome2 | education.outcome2 |
-      social.outcome2 | information.outcome2, 1, 0)) %>%
-  group_by(mun.id) %>%
-  filter(ebt.year == min(ebt.year))
-
+      social.outcome2 | information.outcome2, 1, 0))
 
 # include audit data
 audit %<>%
@@ -78,22 +72,42 @@ audit %<>%
 
 ################################################################################
 # merge all data into one panel
-# join active/passive transparency outcomes data: ebt and audits
-transparency <- ebt %>%
-  full_join(audit, by = c('mun.id')) %>%
-  mutate(obs.year = ifelse(!is.na(audit.year), audit.year, ebt.year),
-    ebttime.outcome = ifelse(obs.year < 2012, NA, ebttime.outcome),
-    ebtquality.outcome = ifelse(obs.year < 2012, NA, ebtquality.outcome),
-    obs.id = row_number(obs.year))
+# join active/passive transparency outcomes data: ebt and audits. i first define
+# unique sets of audited municipalities, both before and after lai
+audited.mun <- audit %$% unique(mun.id)
+lai.mun     <- ebt   %$% unique(mun.id)
+
+# split audit dataset for before and after 2012
+audit.prelai  <- filter(audit, audit.year < 2012)
+audit.postlai <- filter(audit, audit.year > 2011)
+
+# split ebt dataset for yes and no audit
+ebt.no  <- filter(ebt, !(mun.id %in% audited.mun))
+ebt.yes <- filter(ebt, mun.id %in% audited.mun)
+
+# audited before lai
+audit.prelai %<>% left_join(ebt, by = c('mun.id', 'audit.year' = 'ebt.year'))
+
+# audited after lai
+audit.postlai %<>%
+  full_join(ebt.yes, by = 'mun.id') %>%
+  mutate(obs.year = ifelse(is.na(ebt.year), audit.year, ebt.year))
+
+# not audited post lai
+ebt.no %<>% left_join(audit, by = c('mun.id', 'ebt.year' = 'audit.year'))
+
+# bind transparency dataset
+transparency <- bind_rows(audit.prelai, audit.postlai, ebt.no) %>%
+                mutate(obs.id = row_number(mun.id))
 
 # join performance outcomes onto active/passive transparency data
 transparency %<>%
-  left_join(performance, by = c('mun.id')) %>%
-  group_by(obs.id) %>%
+  left_join(performance, by = 'mun.id') %>%
   select(state.id, matches('\\.id$'), matches('year'), matches('outcome')) %>%
-  filter(abs(obs.year - mdp.year) == min(abs(obs.year - mdp.year))) %>%
+  mutate(obs.year = ifelse(is.na(ebt.year), audit.year, ebt.year)) %>%
+  group_by(obs.id) %>%
+  slice(which.min(abs(obs.year - mdp.year))) %>%
   ungroup() %>%
-  filter(!duplicated(obs.id)) %>%
   select(obs.id, state.id, mun.id, everything(), -audit.year, -ebt.year)
 
 # join crackdown/conviction and rde datasets
@@ -107,12 +121,15 @@ sanctions <- crackdown %>%
   rename(state.id = state.id.x)
 
 # join sanctions onto transparency dataset
-transparency %>%
+transparency %<>%
   left_join(sanctions, by = c('mun.id', 'obs.year' = 'crackdown.year')) %>%
-  mutate(audit.treatment = ifelse(!is.na(audit.id), 1, 0)) %>%
+  mutate(audit.treatment = ifelse(is.na(audit.id), 0, 1)) %>%
   mutate(ebt.treatment   = ifelse( obs.year < 2012, 0, 1)) %>%
-  select(state.id = state.id.x, 2:7, matches('trea'), everything(), -state.id.y) %>%
-  group_by(mun.id, obs.year)
+  select(-state.id.y, state.id = state.id.x, 1:6, matches('treatment')) %>%
+  filter(!duplicated(obs.id))
 
+# remove unnecessary objects
+rm(list = objects(pattern = '\\.'))
 
-
+# write to disk
+save(transparency, file = '01_transparency.Rda')

@@ -102,5 +102,8 @@ performance %<>%
   select(mun.id = Codmundv, 2:8) %>%
   mutate(mun.id = as.character(mun.id))
 
+# remove files
+rm(ibge.dataset, file, files, folder, years)
+
 # write to disk
 save(performance, file = '00_performance.Rda')
