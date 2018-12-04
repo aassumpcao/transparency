@@ -15,8 +15,9 @@ library(magrittr)
 library(AER)
 library(stargazer)
 
-
 # load datasets
 load('01_transparency.Rda')
+
+# define functions
 
 ################################################################################

@@ -4,6 +4,11 @@
 
 # import statements
 library(here)
+library(tidyverse)
+library(magrittr)
+library(readxl)
+library(AER)
+library(stargazer)
 
 # wrangle audit data
 source('00_transparency_auditData.R')
