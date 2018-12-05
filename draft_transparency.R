@@ -362,3 +362,58 @@ audit %>% group_by(mun.id)
 # + 1821 (@ unique municipalities in ebt data)
 # ------
 # = 2953
+
+load('ibge.dataset.Rda')
+rm(ibge.dataset)
+
+
+
+# produce means, difference in means and p.values for all variables
+# define vector of variables displayed in descriptive statistics table
+
+
+# run for loop to produce descriptive stats table
+for (i in seq(covariates)) {
+
+  # run ttest for each treatment arm independently
+  column1 <- paste0(covariates[i], '~ audit.treatment') %>%
+             as.formula() %>%
+             t.test(data = mutate(analysis, mun.income = log(mun.income)),
+                    conf.level = .95) %>%
+             .[c('estimate', 'p.value')] %>%
+             unlist() %>%
+             unname()
+
+  # run ttest for each treatment arm independently
+  column2 <- paste0(covariates[i], '~ ebt.treatment') %>%
+             as.formula() %>%
+             t.test(data = mutate(analysis, mun.income = log(mun.income)),
+                    conf.level = .95) %>%
+             .[c('estimate', 'p.value')] %>%
+             unlist() %>%
+             unname()
+
+  # run ttest for each treatment arm independently
+  column3 <- paste0(covariates[i], '~ double.treatment') %>%
+             as.formula() %>%
+             t.test(data = mutate(analysis, mun.income = log(mun.income)),
+                    conf.level = .95) %>%
+             .[c('estimate', 'p.value')] %>%
+             unlist() %>%
+             unname()
+
+  # compute difference in means and keep p-values
+  column1[3:4] <- c(column1[1] - column1[2], column1[3])
+  column2[3:4] <- c(column2[1] - column2[2], column2[3])
+  column3[3:4] <- c(column3[1] - column3[2], column3[3])
+
+  # build row with such information
+  row <- c(column1, column2, column3)
+
+  # bind into dataset
+  if (i == 1) {table <- tibble(row)}
+  else        {table <- bind_cols(table, row = row)}
+}
+
+
+table <- as.tibble(data.table::transpose(table))
