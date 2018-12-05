@@ -1,4 +1,4 @@
-PWD /Users/aassumpcao/OneDrive - University of North Carolina at Chapel Hill/Documents/Research/2019 Active and Passive Transparency/proposal
+PWD /Users/aassumpcao/OneDrive - University of North Carolina at Chapel Hill/Documents/Research/2019 Active and Passive Transparency/proposal3
 INPUT /usr/local/texlive/2018/texmf.cnf
 INPUT /usr/local/texlive/2018/texmf-dist/web2c/texmf.cnf
 INPUT /usr/local/texlive/2018/texmf-var/web2c/pdftex/pdflatex.fmt
@@ -299,17 +299,23 @@ INPUT /usr/local/texlive/2018/texmf-var/fonts/map/pdftex/updmap/pdftex.map
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/tfm/public/cm/cmr12.tfm
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm
-INPUT tab_sumstats3.tex
-INPUT tab_sumstats3.tex
+INPUT tab_sumstats.tex
+INPUT tab_sumstats.tex
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/tfm/public/cm/cmti8.tfm
+INPUT tab_treatarms.tex
+INPUT tab_treatarms.tex
+INPUT tab_corruption1.tex
+INPUT tab_corruption1.tex
 INPUT aassumpcao-draft3.aux
 INPUT ./aassumpcao-draft3.out
 INPUT ./aassumpcao-draft3.out
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb
+INPUT /usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb
+INPUT /usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb

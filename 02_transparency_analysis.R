@@ -14,6 +14,7 @@ library(tidyverse)
 library(magrittr)
 library(AER)
 library(stargazer)
+library(lfe)
 
 # load datasets
 load('01_transparency.Rda')
@@ -71,7 +72,7 @@ t.labels  <- c('Active Transparency', 'Passive Transparency',
 # create dir for prospectus
 dir.create('./proposal3')
 
-# produce means, difference in means and p.values for all variables so that i
+### produce means, difference in means and p.values for all variables so that i
 # print the descriptive statistics table
 for (i in seq(covariates)) {
 
@@ -148,16 +149,16 @@ table$Variables <- c(cov.labels[1], NA, cov.labels[2], NA, cov.labels[3], NA,
                      cov.labels[10], NA, cov.labels[11], NA, 'Sample Size')
 
 # print table
-xtable::xtable(
-  # table object
-  table,
-  # styling arguments
-  caption = 'Descriptive Statistics by Treatment Condition',
-  label = 'tab:descriptivestats3',
-  align = rep('r', 11),
-  digits = 3,
-  display = rep('s', 11)
-) %>%
+# xtable::xtable(
+#   # table object
+#   table,
+#   # styling arguments
+#   caption = 'Descriptive Statistics by Treatment Condition',
+#   label = 'tab:descriptivestats3',
+#   align = rep('r', 11),
+#   digits = 3,
+#   display = rep('s', 11)
+# ) %>%
 # xtable::print.xtable(
 #   # styling arguments
 #   file = './proposal3/tab_sumstats.tex',
@@ -166,3 +167,118 @@ xtable::xtable(
 #   hline.after = c(-1, -1, 0, 22, 23, 23),
 #   print.results = TRUE
 # )
+
+# produce tabulation with sample sizes
+# wrangle data, print tabulation, and manually pass values to latex
+analysis %$% table(audit.treatment, ebt.treatment)
+
+# remove table to avoid confusion
+rm(list = objects(pattern = '^table$|sample|labels\\.row$'))
+
+################################################################################
+# make last changes to data before analysis
+# first, i log income and corruption outcomes (as in avis, ferraz, finan (2018))
+analysis %<>%
+  mutate_at(vars(matches('mism|orr|count|inc')), funs(ifelse(. == 0, 1, .))) %>%
+  mutate_at(vars(matches('mism|orr|count|inc')), log)
+
+# second, i subset the dataset for each
+corrup.ds <- filter(analysis, !is.na(audit.id))
+info.ds   <- filter(analysis, obs.year > 2011)
+perf.ds   <- filter(analysis, !is.na(double.treatment))
+
+################################################################################
+# table one: corruption outcomes
+# create formula with no covariates
+corruption.reg0 <- outcomes[1:3] %>%
+  paste0(' ~ ebt.treatment')
+
+# create formula for covariates and fixed-effects
+corruption.reg1 <- outcomes[1:3] %>%
+  paste0(' ~ ebt.treatment + ') %>%
+  paste0(paste0(covariates, collapse = ' + '))
+
+# create formulas for all six regresions
+passive0.corruption <- felm(as.formula(corruption.reg0[2]), data = corrup.ds)
+passive1.corruption <- felm(as.formula(corruption.reg1[2]), data = corrup.ds)
+passive0.mismanagmt <- felm(as.formula(corruption.reg0[1]), data = corrup.ds)
+passive1.mismanagmt <- felm(as.formula(corruption.reg1[1]), data = corrup.ds)
+passive0.irregtotal <- felm(as.formula(corruption.reg0[3]), data = corrup.ds)
+passive1.irregtotal <- felm(as.formula(corruption.reg1[3]), data = corrup.ds)
+
+# produce table one: corruption outcomes
+stargazer(
+
+  # regressions with outcome 1: outcome.elected
+  list(passive0.corruption, passive1.corruption, passive0.mismanagmt,
+       passive1.mismanagmt, passive0.irregtotal, passive1.irregtotal),
+
+  # table cosmetics
+  type = 'text',
+  title = 'The Effect of Passive Transparency on Corruption',
+  style = 'default',
+  # out = './proposal3/tab_corruption1.tex',
+  out.header = FALSE,
+  column.labels = o.labels[c(2, 1, 3)],
+  column.separate = rep(2, 3),
+  covariate.labels = c(t.labels[2], cov.labels),
+  dep.var.caption = '',
+  dep.var.labels.include = FALSE,
+  align = TRUE,
+  se = list(cse(passive0.corruption), cse(passive1.corruption),
+            cse(passive0.mismanagmt), cse(passive1.mismanagmt),
+            cse(passive0.irregtotal), cse(passive1.irregtotal)),
+  column.sep.width = '-2pt',
+  digit.separate = 3,
+  digits = 3,
+  digits.extra = 0,
+  font.size = 'scriptsize',
+  header = FALSE,
+  initial.zero = FALSE,
+  model.names = FALSE,
+  keep = c('ebt'),
+  label = 'tab:corruption1',
+  no.space = FALSE,
+  omit = c('mun\\.'),
+  omit.labels = c('Municipal Controls'),
+  omit.yes.no = c('Yes', '-'),
+  omit.stat = 'ser',
+  table.placement = '!htbp'
+)
+
+
+################################################################################
+# table one: information outcomes
+# create formula with no covariates
+information.reg0 <- outcomes[4:5] %>%
+  paste0(' ~ audit.treatment')
+
+# create formula for covariates and fixed-effects
+information.reg1 <- outcomes[4:5] %>%
+  paste0(' ~ audit.treatment + ') %>%
+  paste0(paste0(covariates, collapse = ' + ')) %>%
+  paste0(' | obs.year | 0')
+
+# create formulas for all six regresions
+active0.infotime <- felm(as.formula(information.reg0[1]), data = info.ds)
+active1.infotime <- felm(as.formula(information.reg1[1]), data = info.ds)
+active0.infoqual <- felm(as.formula(information.reg0[2]), data = info.ds)
+active1.infoqual <- felm(as.formula(information.reg1[2]), data = info.ds)
+
+################################################################################
+# table one: information outcomes
+# create formula with no covariates
+performance.reg0 <- outcomes[6:7] %>%
+  paste0(' ~ double.treatment')
+
+# create formula for covariates and fixed-effects
+performance.reg1 <- outcomes[6:7] %>%
+  paste0(' ~ double.treatment + ') %>%
+  paste0(paste0(covariates, collapse = ' + ')) %>%
+  paste0(' | obs.year | 0')
+
+# create formulas for all six regresions
+performance0.mdp       <- felm(as.formula(performance.reg0[1]), data = perf.ds)
+performance1.mdp       <- felm(as.formula(performance.reg1[1]), data = perf.ds)
+performance0.sanctions <- felm(as.formula(performance.reg0[2]), data = perf.ds)
+performance1.sanctions <- felm(as.formula(performance.reg1[2]), data = perf.ds)

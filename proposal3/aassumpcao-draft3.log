@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.6.7)  5 DEC 2018 12:32
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.6.7)  5 DEC 2018 18:03
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -921,41 +921,48 @@ LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <6> not available
  [0
 
 {/usr/local/texlive/2018/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] (./tab_
-sumstats3.tex)
-[1
+sumstats.tex)
+(./tab_treatarms.tex) (./tab_corruption1.tex
+Overfull \hbox (1.42024pt too wide) in paragraph at lines 6--25
+ [][] 
+ []
 
-]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 300.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 300.
+) [1
+
+] [2]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 304.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 304.
  (./aassumpcao-draft3.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 300.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 300.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 304.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 304.
 Package rerunfilecheck Info: File `aassumpcao-draft3.out' has not changed.
 (rerunfilecheck)             Checksum: 3459C2683B054F9B1083C55F8D02621B;1277.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 300.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 304.
  ) 
 Here is how much of TeX's memory you used:
- 23142 strings out of 492646
- 398073 string characters out of 6129564
- 484446 words of memory out of 5000000
- 26608 multiletter control sequences out of 15000+600000
+ 23153 strings out of 492646
+ 398248 string characters out of 6129564
+ 490592 words of memory out of 5000000
+ 26610 multiletter control sequences out of 15000+600000
  12752 words of font info for 49 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 55i,11n,54p,1570b,359s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 55i,16n,54p,1570b,359s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
-</usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></
-usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></us
-r/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/
-local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/loc
-al/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/
-texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/te
-xlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texl
-ive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmti8.pfb>
-Output written on aassumpcao-draft3.pdf (2 pages, 128907 bytes).
+</usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></
+usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></us
+r/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/
+local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/lo
+cal/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local
+/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/te
+xlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texli
+ve/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive
+/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2
+018/texmf-dist/fonts/type1/public/amsfonts/cm/cmti8.pfb>
+Output written on aassumpcao-draft3.pdf (3 pages, 146310 bytes).
 PDF statistics:
- 97 PDF objects out of 1000 (max. 8388607)
- 82 compressed objects within 1 object stream
- 12 named destinations out of 1000 (max. 500000)
+ 112 PDF objects out of 1000 (max. 8388607)
+ 94 compressed objects within 1 object stream
+ 15 named destinations out of 1000 (max. 500000)
  77 words of extra memory for PDF output out of 10000 (max. 10000000)
 

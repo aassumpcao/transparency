@@ -9,6 +9,7 @@ library(magrittr)
 library(readxl)
 library(AER)
 library(stargazer)
+library(lfe)
 
 # wrangle audit data
 source('00_transparency_auditData.R')

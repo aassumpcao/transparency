@@ -363,6 +363,42 @@ audit %>% group_by(mun.id)
 # ------
 # = 2953
 
-load('ibge.dataset.Rda')
-rm(ibge.dataset)
+# produce table one: corruption outcomes
+stargazer(
 
+  # regressions with outcome 1: outcome.elected
+  list(passive0.corruption, passive1.corruption, passive0.mismanagmt,
+       passive1.mismanagmt, passive0.irregtotal, passive1.irregtotal),
+
+  # table cosmetics
+  type = 'text',
+  title = 'The Effect of Passive Transparency on Corruption',
+  style = 'default',
+  # out = './proposal3/tab_corruption1.tex',
+  out.header = FALSE,
+  column.labels = o.labels[c(2, 1, 3)],
+  column.separate = rep(2, 3),
+  covariate.labels = c(t.labels[2], cov.labels),
+  dep.var.caption = '',
+  dep.var.labels.include = FALSE,
+  align = TRUE,
+  se = list(cse(passive0.corruption), cse(passive1.corruption),
+            cse(passive0.mismanagmt), cse(passive1.mismanagmt),
+            cse(passive0.irregtotal), cse(passive1.irregtotal)),
+  column.sep.width = '-2pt',
+  digit.separate = 3,
+  digits = 3,
+  digits.extra = 0,
+  font.size = 'scriptsize',
+  header = FALSE,
+  initial.zero = FALSE,
+  model.names = FALSE,
+  keep = c('ebt'),
+  label = 'tab:corruption1',
+  no.space = FALSE,
+  omit = c('mun\\.'),
+  omit.labels = c('Municipal Controls'),
+  omit.yes.no = c('Yes', '-'),
+  omit.stat = 'ser',
+  table.placement = '!htbp'
+)
