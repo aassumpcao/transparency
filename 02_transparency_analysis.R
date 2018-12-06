@@ -31,7 +31,7 @@ cse <- function(reg) {
 
   # Body:
   #   call to vcovHC
-  rob <- sqrt(diag(sandwich::vcovHC(reg, type = "HC1")))
+  rob <- sqrt(diag(sandwich::vcovHC(reg, type = 'HC1')))
 
   #   return matrix
   return(rob)
@@ -215,7 +215,7 @@ stargazer(
 
   # table cosmetics
   type = 'text',
-  title = 'The Effect of Passive Transparency on Corruption',
+  title = 'The Effect of Passive Transparency on Corruption Irregularities',
   style = 'default',
   # out = './proposal3/tab_corruption1.tex',
   out.header = FALSE,
@@ -239,16 +239,15 @@ stargazer(
   keep = c('ebt'),
   label = 'tab:corruption1',
   no.space = FALSE,
-  omit = c('mun\\.'),
-  omit.labels = c('Municipal Controls'),
+  omit = 'mun\\.',
+  omit.labels = 'Municipal Controls',
   omit.yes.no = c('Yes', '-'),
   omit.stat = 'ser',
   table.placement = '!htbp'
 )
 
-
 ################################################################################
-# table one: information outcomes
+# table two: information outcomes
 # create formula with no covariates
 information.reg0 <- outcomes[4:5] %>%
   paste0(' ~ audit.treatment')
@@ -265,8 +264,46 @@ active1.infotime <- felm(as.formula(information.reg1[1]), data = info.ds)
 active0.infoqual <- felm(as.formula(information.reg0[2]), data = info.ds)
 active1.infoqual <- felm(as.formula(information.reg1[2]), data = info.ds)
 
+# produce table two: information outcomes
+stargazer(
+
+  # regressions with outcome 1: outcome.elected
+  list(active0.infotime, active1.infotime, active0.infoqual, active1.infoqual),
+
+  # table cosmetics
+  type = 'text',
+  title = 'The Effect of Active Transparency on Information Requests',
+  style = 'default',
+  # out = './proposal3/tab_transparency2.tex',
+  out.header = FALSE,
+  column.labels = o.labels[4:5],
+  column.separate = rep(2, 2),
+  covariate.labels = c(t.labels[1], cov.labels),
+  dep.var.caption = '',
+  dep.var.labels.include = FALSE,
+  align = TRUE,
+  se = list(cse(active0.infotime), cse(active1.infotime),
+            cse(active0.infoqual), cse(active1.infoqual)),
+  column.sep.width = '-2pt',
+  digit.separate = 3,
+  digits = 3,
+  digits.extra = 0,
+  font.size = 'scriptsize',
+  header = FALSE,
+  initial.zero = FALSE,
+  model.names = FALSE,
+  keep = c('audit'),
+  label = 'tab:transparency2',
+  no.space = FALSE,
+  omit = c('mun\\.', 'obs\\.year'),
+  omit.labels = c('Municipal Controls', 'Year Fixed-Effects'),
+  omit.yes.no = c('Yes', '-'),
+  omit.stat = 'ser',
+  table.placement = '!htbp'
+)
+
 ################################################################################
-# table one: information outcomes
+# table three: performance and sanction outcomes
 # create formula with no covariates
 performance.reg0 <- outcomes[6:7] %>%
   paste0(' ~ double.treatment')
@@ -282,3 +319,43 @@ performance0.mdp       <- felm(as.formula(performance.reg0[1]), data = perf.ds)
 performance1.mdp       <- felm(as.formula(performance.reg1[1]), data = perf.ds)
 performance0.sanctions <- felm(as.formula(performance.reg0[2]), data = perf.ds)
 performance1.sanctions <- felm(as.formula(performance.reg1[2]), data = perf.ds)
+
+# produce table three: performance and sanction outcomes
+stargazer(
+
+  # regressions with outcome 1: outcome.elected
+  list(performance0.mdp, performance1.mdp, performance0.sanctions,
+       performance1.sanctions),
+
+  # table cosmetics
+  type = 'text',
+  title = paste0('The Effect of Active and Passive Transparency on Performance',
+                 ' and Sanctions'),
+  style = 'default',
+  # out = './proposal3/tab_transparency2.tex',
+  out.header = FALSE,
+  column.labels = o.labels[6:7],
+  column.separate = rep(2, 2),
+  covariate.labels = c(t.labels[3], cov.labels),
+  dep.var.caption = '',
+  dep.var.labels.include = FALSE,
+  align = TRUE,
+  se = list(cse(performance0.mdp), cse(performance1.mdp),
+            cse(performance0.sanctions), cse(performance1.sanctions)),
+  column.sep.width = '-2pt',
+  digit.separate = 3,
+  digits = 3,
+  digits.extra = 0,
+  font.size = 'scriptsize',
+  header = FALSE,
+  initial.zero = FALSE,
+  model.names = FALSE,
+  keep = c('double'),
+  label = 'tab:transparency2',
+  no.space = FALSE,
+  omit = c('mun\\.', 'obs\\.year'),
+  omit.labels = c('Municipal Controls', 'Year Fixed-Effects'),
+  omit.yes.no = c('Yes', '-'),
+  omit.stat = 'ser',
+  table.placement = '!htbp'
+)

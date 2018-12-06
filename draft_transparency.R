@@ -363,40 +363,20 @@ audit %>% group_by(mun.id)
 # ------
 # = 2953
 
-# produce table one: corruption outcomes
-stargazer(
 
-  # regressions with outcome 1: outcome.elected
-  list(active0.infotime, active1.infotime, active0.infoqual, active1.infoqual),
 
-  # table cosmetics
-  type = 'text',
-  title = 'The Effect of Active Transparency on Information Requests',
-  style = 'default',
-  # out = './proposal3/tab_transparency2.tex',
-  out.header = FALSE,
-  column.labels = o.labels[c(4, 5)],
-  column.separate = rep(2, 2),
-  covariate.labels = c(t.labels[1], cov.labels),
-  dep.var.caption = '',
-  dep.var.labels.include = FALSE,
-  align = TRUE,
-  se = list(cse(active0.infotime), cse(active1.infotime),
-            cse(active0.infoqual), cse(active1.infoqual)),
-  column.sep.width = '-2pt',
-  digit.separate = 3,
-  digits = 3,
-  digits.extra = 0,
-  font.size = 'scriptsize',
-  header = FALSE,
-  initial.zero = FALSE,
-  model.names = FALSE,
-  keep = c('audit'),
-  label = 'tab:transparency2',
-  no.space = FALSE,
-  omit = c('mun\\.', '^obs\\.year$'),
-  omit.labels = c('Municipal Controls', 'Year Fixed-Effects'),
-  omit.yes.no = c('Yes', '-'),
-  omit.stat = 'ser',
-  table.placement = '!htbp'
-)
+
+
+SchoolAidDataset %>% names()
+SchoolAidLongleaf %>% names()
+
+MCMCposterior
+
+SchoolAidLongleaf %$% table(councillor_performance2)
+SchoolAidLongleaf %$% table(councillor_performance3)
+SchoolAidLongleaf %$% table(councillor_performance4)
+3925-130
+
+  filter(!is.na(z_performance4))
+
+h01_support_x %>% summary()
