@@ -43,6 +43,7 @@ analysis <- transparency %>%
   mutate(mun.id = str_sub(mun.id, 1, 6)) %>%
   left_join(mutate(mun.data, mun.id = as.character(ibge.id)), by = 'mun.id') %>%
   select(-ibge.id) %>%
+  filter(!is.na(ebttime.outcome) | obs.year < 2012) %>%
   mutate(double.treatment = ifelse(audit.treatment==1 & ebt.treatment==1, 1, 0))
 
 ################################################################################
@@ -148,20 +149,20 @@ table$Variables <- c(cov.labels[1], NA, cov.labels[2], NA, cov.labels[3], NA,
                      cov.labels[7], NA, cov.labels[8], NA, cov.labels[9], NA,
                      cov.labels[10], NA, cov.labels[11], NA, 'Sample Size')
 
-# print table
-# xtable::xtable(
-#   # table object
-#   table,
-#   # styling arguments
-#   caption = 'Descriptive Statistics by Treatment Condition',
-#   label = 'tab:descriptivestats3',
-#   align = rep('r', 11),
-#   digits = 3,
-#   display = rep('s', 11)
-# ) %>%
+print table
+xtable::xtable(
+  # table object
+  table,
+  # styling arguments
+  caption = 'Descriptive Statistics by Treatment Condition',
+  label = 'tab:descriptivestats3',
+  align = rep('r', 11),
+  digits = 3,
+  display = rep('s', 11)
+) #%>%
 # xtable::print.xtable(
 #   # styling arguments
-#   file = './proposal3/tab_sumstats.tex',
+#   file = './proposal3/tab_sumstats1.tex',
 #   table.placement = '!htbp',
 #   caption.placement = 'top',
 #   hline.after = c(-1, -1, 0, 22, 23, 23),
@@ -332,7 +333,7 @@ stargazer(
   title = paste0('The Effect of Active and Passive Transparency on Performance',
                  ' and Sanctions'),
   style = 'default',
-  # out = './proposal3/tab_transparency2.tex',
+  # out = './proposal3/tab_performance3.tex',
   out.header = FALSE,
   column.labels = o.labels[6:7],
   column.separate = rep(2, 2),
@@ -351,7 +352,7 @@ stargazer(
   initial.zero = FALSE,
   model.names = FALSE,
   keep = c('double'),
-  label = 'tab:transparency2',
+  label = 'tab:performance3',
   no.space = FALSE,
   omit = c('mun\\.', 'obs\\.year'),
   omit.labels = c('Municipal Controls', 'Year Fixed-Effects'),

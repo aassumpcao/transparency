@@ -299,6 +299,7 @@ INPUT /usr/local/texlive/2018/texmf-var/fonts/map/pdftex/updmap/pdftex.map
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/tfm/public/cm/cmr12.tfm
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm
+INPUT /usr/local/texlive/2018/texmf-dist/fonts/tfm/public/cm/cmbx10.tfm
 INPUT tab_sumstats.tex
 INPUT tab_sumstats.tex
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/tfm/public/cm/cmti8.tfm
@@ -306,6 +307,10 @@ INPUT tab_treatarms.tex
 INPUT tab_treatarms.tex
 INPUT tab_corruption1.tex
 INPUT tab_corruption1.tex
+INPUT tab_transparency2.tex
+INPUT tab_transparency2.tex
+INPUT tab_performance3.tex
+INPUT tab_performance3.tex
 INPUT aassumpcao-draft3.aux
 INPUT ./aassumpcao-draft3.out
 INPUT ./aassumpcao-draft3.out

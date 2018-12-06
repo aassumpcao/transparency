@@ -364,6 +364,16 @@ audit %>% group_by(mun.id)
 # = 2953
 
 
+info.ds %>% summary()
+info.ds %$% table(is.na(ebttime.outcome))
+
+info.ds %>%
+  filter(is.na(ebttime.outcome))
+
+analysis %>%
+  filter(is.na(ebttime.outcome) & obs.year > 2011)
+
+
 
 
 
@@ -380,3 +390,48 @@ SchoolAidLongleaf %$% table(councillor_performance4)
   filter(!is.na(z_performance4))
 
 h01_support_x %>% summary()
+
+
+
+passive0.corruption %>% summary(robust = TRUE)
+cse(passive0.corruption)
+
+passive1.corruption %>% summary(robust = TRUE)
+cse(passive1.corruption)
+
+passive0.mismanagmt %>% summary(robust = TRUE)
+cse(passive0.mismanagmt)
+
+passive1.mismanagmt %>% summary(robust = TRUE)
+cse(passive1.mismanagmt)
+
+passive0.irregtotal %>% summary(robust = TRUE)
+cse(passive0.irregtotal)
+
+passive1.irregtotal %>% summary(robust = TRUE)
+cse(passive1.irregtotal)
+
+
+active0.infotime %>% summary(robust = TRUE)
+cse(active0.infotime)
+
+active1.infotime %>% summary(robust = TRUE)
+cse(active1.infotime)
+
+active0.infoqual %>% summary(robust = TRUE)
+cse(active0.infoqual)
+
+active1.infoqual %>% summary(robust = TRUE)
+cse(active1.infoqual)
+
+performance0.mdp %>% summary(robust = TRUE)
+cse(performance0.mdp)
+
+performance1.mdp %>% summary(robust = TRUE)
+cse(performance1.mdp)
+
+performance0.sanctions %>% summary(robust = TRUE)
+cse(performance0.sanctions)
+
+performance1.sanctions %>% summary(robust = TRUE)
+cse(performance1.sanctions)

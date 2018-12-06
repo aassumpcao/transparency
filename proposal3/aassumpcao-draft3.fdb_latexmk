@@ -1,5 +1,5 @@
 # Fdb version 3
-["pdflatex"] 1544051034 "aassumpcao-draft3.tex" "aassumpcao-draft3.pdf" "aassumpcao-draft3" 1544051035
+["pdflatex"] 1544134958 "aassumpcao-draft3.tex" "aassumpcao-draft3.pdf" "aassumpcao-draft3" 1544134959
   "/usr/local/texlive/2018/texmf-dist/fonts/map/fontname/texfonts.map" 1511824771 3332 103109f5612ad95229751940c61aada0 ""
   "/usr/local/texlive/2018/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1480098698 1004 54797486969f23fa377b128694d548df ""
   "/usr/local/texlive/2018/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1480098698 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
@@ -186,14 +186,16 @@
   "/usr/local/texlive/2018/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1528426230 2849778 d20fd0a0d92d412ec9b4143de20d68a5 ""
   "/usr/local/texlive/2018/texmf-var/web2c/pdftex/pdflatex.fmt" 1528423583 4220582 296642f53d93cdbc02373533d0f42b0a ""
   "/usr/local/texlive/2018/texmf.cnf" 1523934483 577 0b39adfd7c93507ff20c9c14c2f1a33f ""
-  "aassumpcao-draft3.aux" 1544051035 2956 549dffd6492e346eb892d76922a74cff ""
-  "aassumpcao-draft3.out" 1544051035 1277 3459c2683b054f9b1083c55f8d02621b ""
-  "aassumpcao-draft3.tex" 1544050496 50188 2e2f37c3c20009aa9e4d6d84c2e66d61 ""
-  "tab_corruption1.tex" 1544051034 1717 40daaaabbc29ad15c165f4f3b383cfe4 ""
-  "tab_sumstats.tex" 1544031122 3908 bb495bde41eb0492febc2eee6b7f7ac0 ""
-  "tab_treatarms.tex" 1544033487 549 442c53d1f762607a30c0bee1a879b9fd ""
+  "aassumpcao-draft3.aux" 1544134959 3745 4f89f4b0e8c588e470f1e607163a0ebb ""
+  "aassumpcao-draft3.out" 1544134959 1432 4d6707b46c363fef56e366093382df68 ""
+  "aassumpcao-draft3.tex" 1544134957 50307 7659948adb918eaac55e44d675a04b62 ""
+  "tab_corruption1.tex" 1544134001 2325 b84914a6541f32eb2773903fb916465d ""
+  "tab_performance3.tex" 1544134692 2139 eb07c619fdf0e1396963ce0c76f0fd3d ""
+  "tab_sumstats.tex" 1544132895 3865 2afdc42a4ab856de8b51ceb531abbe0b ""
+  "tab_transparency2.tex" 1544134036 2039 acee67d3d8af012d20947393e3b4605d ""
+  "tab_treatarms.tex" 1544131972 549 7b8a4173c2aa7afbcf6f80003e80e309 ""
   (generated)
-  "aassumpcao-draft3.pdf"
   "aassumpcao-draft3.aux"
+  "aassumpcao-draft3.pdf"
   "aassumpcao-draft3.out"
   "aassumpcao-draft3.log"
