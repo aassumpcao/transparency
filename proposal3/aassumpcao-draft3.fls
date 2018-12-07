@@ -1,4 +1,4 @@
-PWD /Users/aassumpcao/OneDrive - University of North Carolina at Chapel Hill/Documents/Research/2019 Active and Passive Transparency/proposal3
+PWD /Users/aassumpcao/OneDrive - University of North Carolina at Chapel Hill/Documents/Research/2020 Dissertation/2019 Active and Passive Transparency/proposal3
 INPUT /usr/local/texlive/2018/texmf.cnf
 INPUT /usr/local/texlive/2018/texmf-dist/web2c/texmf.cnf
 INPUT /usr/local/texlive/2018/texmf-var/web2c/pdftex/pdflatex.fmt
@@ -299,6 +299,7 @@ INPUT /usr/local/texlive/2018/texmf-var/fonts/map/pdftex/updmap/pdftex.map
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/tfm/public/cm/cmr12.tfm
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm
+INPUT /usr/local/texlive/2018/texmf-dist/fonts/tfm/public/cm/cmti10.tfm
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/tfm/public/cm/cmbx10.tfm
 INPUT tab_sumstats.tex
 INPUT tab_sumstats.tex
@@ -311,6 +312,8 @@ INPUT tab_transparency2.tex
 INPUT tab_transparency2.tex
 INPUT tab_performance3.tex
 INPUT tab_performance3.tex
+INPUT aassumpcao-draft3.bbl
+INPUT aassumpcao-draft3.bbl
 INPUT aassumpcao-draft3.aux
 INPUT ./aassumpcao-draft3.out
 INPUT ./aassumpcao-draft3.out
@@ -325,4 +328,5 @@ INPUT /usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb
+INPUT /usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb
 INPUT /usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmti8.pfb

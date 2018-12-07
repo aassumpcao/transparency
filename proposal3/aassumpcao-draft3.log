@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.6.7)  6 DEC 2018 17:22
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.6.7)  7 DEC 2018 18:30
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -920,29 +920,31 @@ LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <6> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 67.
  [0
 
-{/usr/local/texlive/2018/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] (./tab_
-sumstats.tex)
-(./tab_treatarms.tex) (./tab_corruption1.tex [1
+{/usr/local/texlive/2018/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [1
 
-]) (./tab_transparency2.tex)
-(./tab_performance3.tex) [2] [3]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 310.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 310.
+]
+(./tab_sumstats.tex) (./tab_treatarms.tex) (./tab_corruption1.tex)
+(./tab_transparency2.tex) (./tab_performance3.tex) [2] [3] [4]
+(./aassumpcao-draft3.bbl) [5
+
+]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 141.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 141.
  (./aassumpcao-draft3.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 310.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 310.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 141.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 141.
 Package rerunfilecheck Info: File `aassumpcao-draft3.out' has not changed.
 (rerunfilecheck)             Checksum: 4D6707B46C363FEF56E366093382DF68;1432.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 310.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 141.
  ) 
 Here is how much of TeX's memory you used:
- 23168 strings out of 492646
- 398522 string characters out of 6129564
- 490837 words of memory out of 5000000
- 26615 multiletter control sequences out of 15000+600000
- 13060 words of font info for 50 fonts, out of 8000000 for 9000
+ 23219 strings out of 492646
+ 400410 string characters out of 6129564
+ 502177 words of memory out of 5000000
+ 26649 multiletter control sequences out of 15000+600000
+ 13406 words of font info for 51 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 55i,12n,54p,1570b,360s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 55i,12n,54p,1558b,359s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
 </usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></
@@ -954,11 +956,12 @@ cal/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local
 xlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texli
 ve/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive
 /2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2
-018/texmf-dist/fonts/type1/public/amsfonts/cm/cmti8.pfb>
-Output written on aassumpcao-draft3.pdf (4 pages, 155048 bytes).
+018/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/20
+18/texmf-dist/fonts/type1/public/amsfonts/cm/cmti8.pfb>
+Output written on aassumpcao-draft3.pdf (6 pages, 183669 bytes).
 PDF statistics:
- 124 PDF objects out of 1000 (max. 8388607)
- 104 compressed objects within 2 object streams
- 19 named destinations out of 1000 (max. 500000)
+ 176 PDF objects out of 1000 (max. 8388607)
+ 153 compressed objects within 2 object streams
+ 32 named destinations out of 1000 (max. 500000)
  85 words of extra memory for PDF output out of 10000 (max. 10000000)
 
