@@ -4,45 +4,45 @@ The top-level auxiliary file: aassumpcao-draft3.aux
 The style file: apalike.bst
 Database file #1: /Users/aassumpcao/library.bib
 Warning--empty publisher in BoRothsteinGoodGovernance2012
-You've used 10 entries,
+You've used 21 entries,
             1935 wiz_defined-function locations,
-            547 strings with 5948 characters,
-and the built_in function-call counts, 4056 in all, are:
-= -- 392
-> -- 150
-< -- 7
-+ -- 47
-- -- 47
-* -- 335
-:= -- 704
-add.period$ -- 31
-call.type$ -- 10
-change.case$ -- 72
-chr.to.int$ -- 10
-cite$ -- 11
-duplicate$ -- 156
-empty$ -- 306
-format.name$ -- 65
-if$ -- 815
+            621 strings with 8509 characters,
+and the built_in function-call counts, 8366 in all, are:
+= -- 815
+> -- 311
+< -- 14
++ -- 101
+- -- 99
+* -- 710
+:= -- 1457
+add.period$ -- 64
+call.type$ -- 21
+change.case$ -- 153
+chr.to.int$ -- 21
+cite$ -- 22
+duplicate$ -- 309
+empty$ -- 619
+format.name$ -- 138
+if$ -- 1663
 int.to.chr$ -- 1
 int.to.str$ -- 0
-missing$ -- 10
-newline$ -- 53
-num.names$ -- 34
-pop$ -- 60
+missing$ -- 21
+newline$ -- 108
+num.names$ -- 67
+pop$ -- 114
 preamble$ -- 1
-purify$ -- 72
+purify$ -- 153
 quote$ -- 0
-skip$ -- 117
+skip$ -- 234
 stack$ -- 0
-substring$ -- 307
-swap$ -- 19
+substring$ -- 655
+swap$ -- 30
 text.length$ -- 1
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 60
+type$ -- 126
 warning$ -- 1
-while$ -- 31
+while$ -- 64
 width$ -- 0
-write$ -- 131
+write$ -- 273
 (There was 1 warning)

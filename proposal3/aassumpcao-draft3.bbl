@@ -18,11 +18,35 @@ Bobonis, G.~J., C\'amara~Fuertes, L.~R., and Schwabe, R. (2016).
 \newblock Monitoring {{Corruptible Politicians}}.
 \newblock {\em American Economic Review}, 106:2371--2405.
 
+\bibitem[Brollo et~al., 2013]{BrolloPoliticalResourceCurse2013}
+Brollo, F., Nannicini, T., Perotti, R., and Tabellini, G. (2013).
+\newblock The {{Political Resource Curse}}.
+\newblock {\em American Economic Review}, 103:1759--1796.
+
 \bibitem[Campante and Do, 2014]{CampanteIsolatedCapitalCities2014}
 Campante, F.~R. and Do, Q.-A. (2014).
 \newblock Isolated {{Capital Cities}}, {{Accountability}}, and {{Corruption}}:
   {{Evidence}} from {{US States}}.
 \newblock {\em American Economic Review}, 104(8):2456--81.
+
+\bibitem[Chong et~al., 2015]{ChongDoesCorruptionInformation2015}
+Chong, A., De~La~O, A., Karlan, D., and Wantchekon, L. (2015).
+\newblock Does {{Corruption Information Inspire}} the {{Fight}} or {{Quash}}
+  the {{Hope}}? {{A Field Experiment}} in {{Mexico}} on {{Voter Turnout}},
+  {{Choice}}, and {{Party Identification}}.
+\newblock {\em The Journal of Politics}, 77:55--71.
+
+\bibitem[Cordis and Warren, 2014]{CordisSunshineDisinfectantEffect2014}
+Cordis, A.~S. and Warren, P.~L. (2014).
+\newblock Sunshine as {{Disinfectant}}: {{The Effect}} of {{State Freedom}} of
+  {{Information Act Laws}} on {{Public Corruption}}.
+\newblock {\em Journal of Public Economics}, 115:18--36.
+
+\bibitem[Costa, 2013]{CostaFreedomInformationLaws2013}
+Costa, S. (2013).
+\newblock Do {{Freedom}} of {{Information Laws Decrease Corruption}}?
+\newblock {\em The Journal of Law, Economics, and Organization},
+  29(6):1317--1343.
 
 \bibitem[Dal~Bo et~al., 2010]{DalBoInstitutionsBehaviorExperimental2010}
 Dal~Bo, P., Foster, A., and Putterman, L. (2010).
@@ -30,11 +54,28 @@ Dal~Bo, P., Foster, A., and Putterman, L. (2010).
   {{Effects}} of {{Democracy}}.
 \newblock {\em American Economic Review}, 100:2205--2229.
 
+\bibitem[Escaleras et~al., 2010]{EscalerasFreedominformationacts2010}
+Escaleras, M., Lin, S., and Register, C. (2010).
+\newblock Freedom of information acts and public sector corruption.
+\newblock {\em Public Choice}, 145(3):435--460.
+
 \bibitem[Ferraz and Finan, 2008]{FerrazExposingCorruptPoliticians2008b}
 Ferraz, C. and Finan, F. (2008).
 \newblock Exposing {{Corrupt Politicians}}: {{The Effects}} of {{Brazil}}'s
   {{Publicly Released Audits}} on {{Electoral Outcomes}}.
 \newblock {\em The Quarterly Journal of Economics}, 123:703--745.
+
+\bibitem[Ferraz and Finan, 2011]{FerrazElectoralAccountabilityCorruption2011a}
+Ferraz, C. and Finan, F. (2011).
+\newblock Electoral {{Accountability}} and {{Corruption}}: {{Evidence}} from
+  the {{Audits}} of {{Local Governments}}.
+\newblock {\em American Economic Review}, 101:1274--1311.
+
+\bibitem[Finan et~al., 2018]{FinanGovernmentAuditsReduce2018}
+Finan, F., Ferraz, C., and Avis, E. (2018).
+\newblock Do {{Government Audits Reduce Corruption}}? {{Estimating}} the
+  {{Impacts}} of {{Exposing Corrupt Politicians}}.
+\newblock {\em Journal of Political Economy}.
 
 \bibitem[Kaufmann et~al., 1999]{KaufmannGovernanceMatters1999}
 Kaufmann, D., Kraay, A., and {Zoido-Lobaton}, P. (1999).
@@ -53,9 +94,35 @@ Olken, B.~A. (2007).
   in {{Indonesia}}.
 \newblock {\em Journal of Political Economy}, 115:200--249.
 
+\bibitem[Pande, 2011]{PandeCaninformedvoters2011}
+Pande, R. (2011).
+\newblock Can informed voters enforce better governance? {{Experiments}} in
+  low-income democracies.
+\newblock {\em Annu. Rev. Econ.}, 3(1):215--237.
+
 \bibitem[Snyder~Jr and Str\"omberg, 2010]{SnyderJrPressCoveragePolitical2010}
 Snyder~Jr, J.~M. and Str\"omberg, D. (2010).
 \newblock Press {{Coverage}} and {{Political Accountability}}.
 \newblock {\em Journal of Political Economy}, 118:355--408.
+
+\bibitem[{Weitz-Shapiro} and Winters,
+  2017]{Weitz-ShapiroCanCitizensDiscern2017}
+{Weitz-Shapiro}, R. and Winters, M.~S. (2017).
+\newblock Can {{Citizens Discern}}? {{Information Credibility}}, {{Political
+  Sophistication}}, and the {{Punishment}} of {{Corruption}} in {{Brazil}}.
+\newblock {\em The Journal of Politics}, 79:60--74.
+
+\bibitem[Winters and {Weitz-Shapiro},
+  2013]{WintersLackingInformationCondoning2013}
+Winters, M.~S. and {Weitz-Shapiro}, R. (2013).
+\newblock Lacking {{Information}} or {{Condoning Corruption}}: {{When Do Voters
+  Support Corrupt Politicians}}?
+\newblock {\em Comparative Politics}, 45:418--436.
+
+\bibitem[Zamboni and Litschig, 2018]{ZamboniAuditRiskRent2018}
+Zamboni, Y. and Litschig, S. (2018).
+\newblock Audit {{Risk}} and {{Rent Extraction}}: {{Evidence}} from a
+  {{Randomized Evaluation}} in {{Brazil}}.
+\newblock {\em Journal of Development Economics}, 134:133--149.
 
 \end{thebibliography}
