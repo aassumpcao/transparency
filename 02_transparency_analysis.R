@@ -73,41 +73,65 @@ t.labels  <- c('Active Transparency', 'Passive Transparency',
 # create dir for prospectus
 dir.create('./proposal3')
 
+# make last changes to data before analysis
+# first, i log income and corruption outcomes (as in avis, ferraz, finan (2018))
+analysis %<>%
+  mutate_at(vars(matches('mism|orr|count|inc')), funs(ifelse(. == 0, 1, .))) %>%
+  mutate_at(vars(matches('mism|orr|count|inc')), log) %>%
+  mutate_at(vars(matches('\\.id$')), as.integer)
+
+# subset the dataset for each group
+corrup.ds <- filter(analysis, !is.na(audit.id))
+info.ds   <- filter(analysis, obs.year > 2011)
+perf.ds   <- filter(analysis, !is.na(double.treatment))
+
 ### produce means, difference in means and p.values for all variables so that i
 # print the descriptive statistics table
+column1 <- vector()
+column2 <- vector()
+column3 <- vector()
+
+# loop over covariates and create table
 for (i in seq(covariates)) {
 
-  # run ttest for each treatment arm independently
-  column1 <- paste0(covariates[i], '~ audit.treatment') %>%
-             as.formula() %>%
-             t.test(data = mutate(analysis, mun.income = log(mun.income)),
-                    conf.level = .95) %>%
-             .[c('estimate', 'p.value')] %>%
-             unlist() %>%
-             unname()
+  # compute means for each treatment group
+  column1[1] <- filter(analysis, ebt.treatment == 0) %$%
+                mean(get(covariates[i]), na.rm = TRUE)
+  column1[2] <- filter(analysis, ebt.treatment == 1) %$%
+                mean(get(covariates[i]), na.rm = TRUE)
 
-  # run ttest for each treatment arm independently
-  column2 <- paste0(covariates[i], '~ ebt.treatment') %>%
-             as.formula() %>%
-             t.test(data = mutate(analysis, mun.income = log(mun.income)),
-                    conf.level = .95) %>%
-             .[c('estimate', 'p.value')] %>%
-             unlist() %>%
-             unname()
+  # compute predicted difference across treatment groups
+  column1[3:4] <- covariates[i] %>%
+    paste0(' ~ ebt.treatment + factor(audit.id) | 0 | 0 | state.id') %>%
+    as.formula() %>%
+    felm(data = analysis) %>%
+    {c(.[['coefficients']][[2, 1]], .[['cse']][[2]])}
 
-  # run ttest for each treatment arm independently
-  column3 <- paste0(covariates[i], '~ double.treatment') %>%
-             as.formula() %>%
-             t.test(data = mutate(analysis, mun.income = log(mun.income)),
-                    conf.level = .95) %>%
-             .[c('estimate', 'p.value')] %>%
-             unlist() %>%
-             unname()
+  # compute means for each treatment group
+  column2[1] <- filter(analysis, audit.treatment == 0) %$%
+                mean(get(covariates[i]), na.rm = TRUE)
+  column2[2] <- filter(analysis, audit.treatment == 1) %$%
+                mean(get(covariates[i]), na.rm = TRUE)
 
-  # compute difference in means and keep p-values
-  column1[3:4] <- c(column1[1] - column1[2], column1[3])
-  column2[3:4] <- c(column2[1] - column2[2], column2[3])
-  column3[3:4] <- c(column3[1] - column3[2], column3[3])
+  # compute predicted difference across treatment groups
+  column2[3:4] <- covariates[i] %>%
+    paste0(' ~ audit.treatment + factor(obs.year) | 0 | 0 | state.id') %>%
+    as.formula() %>%
+    felm(data = analysis) %>%
+    {c(.[['coefficients']][[2, 1]], .[['cse']][[2]])}
+
+  # compute means for each treatment group
+  column3[1] <- filter(analysis, double.treatment == 0) %$%
+                mean(get(covariates[i]), na.rm = TRUE)
+  column3[2] <- filter(analysis, double.treatment == 1) %$%
+                mean(get(covariates[i]), na.rm = TRUE)
+
+  # compute predicted difference across treatment groups
+  column3[3:4] <- covariates[i] %>%
+    paste0(' ~ double.treatment + factor(obs.year) | 0 | 0 | state.id') %>%
+    as.formula() %>%
+    felm(data = analysis) %>%
+    {c(.[['coefficients']][[2, 1]], .[['cse']][[2]])}
 
   # build row with such information
   row1 <- c(column1[1:3], column2[1:3], column3[1:3])
@@ -149,7 +173,7 @@ table$Variables <- c(cov.labels[1], NA, cov.labels[2], NA, cov.labels[3], NA,
                      cov.labels[7], NA, cov.labels[8], NA, cov.labels[9], NA,
                      cov.labels[10], NA, cov.labels[11], NA, 'Sample Size')
 
-print table
+# print table
 xtable::xtable(
   # table object
   table,
@@ -177,18 +201,6 @@ analysis %$% table(audit.treatment, ebt.treatment)
 rm(list = objects(pattern = '^table$|sample|labels\\.row$'))
 
 ################################################################################
-# make last changes to data before analysis
-# first, i log income and corruption outcomes (as in avis, ferraz, finan (2018))
-analysis %<>%
-  mutate_at(vars(matches('mism|orr|count|inc')), funs(ifelse(. == 0, 1, .))) %>%
-  mutate_at(vars(matches('mism|orr|count|inc')), log)
-
-# second, i subset the dataset for each
-corrup.ds <- filter(analysis, !is.na(audit.id))
-info.ds   <- filter(analysis, obs.year > 2011)
-perf.ds   <- filter(analysis, !is.na(double.treatment))
-
-################################################################################
 # table one: corruption outcomes
 # create formula with no covariates
 corruption.reg0 <- outcomes[1:3] %>%
@@ -197,9 +209,10 @@ corruption.reg0 <- outcomes[1:3] %>%
 # create formula for covariates and fixed-effects
 corruption.reg1 <- outcomes[1:3] %>%
   paste0(' ~ ebt.treatment + ') %>%
-  paste0(paste0(covariates, collapse = ' + '))
+  paste0(paste0(covariates, collapse = ' + ')) %>%
+  paste0(' | 0 | 0 | obs.year')
 
-# create formulas for all six regresions
+# create formulas for all six regressions
 passive0.corruption <- felm(as.formula(corruption.reg0[2]), data = corrup.ds)
 passive1.corruption <- felm(as.formula(corruption.reg1[2]), data = corrup.ds)
 passive0.mismanagmt <- felm(as.formula(corruption.reg0[1]), data = corrup.ds)
@@ -226,9 +239,6 @@ stargazer(
   dep.var.caption = '',
   dep.var.labels.include = FALSE,
   align = TRUE,
-  se = list(cse(passive0.corruption), cse(passive1.corruption),
-            cse(passive0.mismanagmt), cse(passive1.mismanagmt),
-            cse(passive0.irregtotal), cse(passive1.irregtotal)),
   column.sep.width = '-2pt',
   digit.separate = 3,
   digits = 3,
@@ -257,7 +267,7 @@ information.reg0 <- outcomes[4:5] %>%
 information.reg1 <- outcomes[4:5] %>%
   paste0(' ~ audit.treatment + ') %>%
   paste0(paste0(covariates, collapse = ' + ')) %>%
-  paste0(' | obs.year | 0')
+  paste0(' | obs.year | 0 | mun.id')
 
 # create formulas for all six regresions
 active0.infotime <- felm(as.formula(information.reg0[1]), data = info.ds)
@@ -283,8 +293,6 @@ stargazer(
   dep.var.caption = '',
   dep.var.labels.include = FALSE,
   align = TRUE,
-  se = list(cse(active0.infotime), cse(active1.infotime),
-            cse(active0.infoqual), cse(active1.infoqual)),
   column.sep.width = '-2pt',
   digit.separate = 3,
   digits = 3,
@@ -313,7 +321,7 @@ performance.reg0 <- outcomes[6:7] %>%
 performance.reg1 <- outcomes[6:7] %>%
   paste0(' ~ double.treatment + ') %>%
   paste0(paste0(covariates, collapse = ' + ')) %>%
-  paste0(' | obs.year | 0')
+  paste0(' | obs.year | 0 | mun.id')
 
 # create formulas for all six regresions
 performance0.mdp       <- felm(as.formula(performance.reg0[1]), data = perf.ds)
@@ -341,8 +349,8 @@ stargazer(
   dep.var.caption = '',
   dep.var.labels.include = FALSE,
   align = TRUE,
-  se = list(cse(performance0.mdp), cse(performance1.mdp),
-            cse(performance0.sanctions), cse(performance1.sanctions)),
+  # se = list(cse(performance0.mdp), cse(performance1.mdp),
+  #           cse(performance0.sanctions), cse(performance1.sanctions)),
   column.sep.width = '-2pt',
   digit.separate = 3,
   digits = 3,

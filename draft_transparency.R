@@ -435,3 +435,22 @@ cse(performance0.sanctions)
 
 performance1.sanctions %>% summary(robust = TRUE)
 cse(performance1.sanctions)
+
+analysis %>%
+  filter(!is.na(audit.id)) %>%
+  group_by(mun.id)
+
+analysis %>%
+  group_by(mun.id)
+
+
+
+corrup.ds %$% table(ebt.treatment)
+
+analysis %$% table(ebt.treatment)
+analysis %$% table(audit.treatment)
+analysis %$% table(double.treatment)
+
+i = 3
+
+table
