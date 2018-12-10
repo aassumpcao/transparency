@@ -52,7 +52,7 @@ analysis <- transparency %>%
 outcomes <- names(analysis) %>% str_subset('\\.outcome') %>% .[c(1:6, 10)]
 o.labels <- c('Acts of Mismanagement (ln)', 'Acts of Corruption (ln)',
               'Number of Irregularities (ln)', 'FOI Request (time)',
-              'FOI Request (quality)', 'MDP Adoption', 'Sanctioned')
+              'FOI Request (accuracy)', 'MUDP Adoption', 'Official Sanctioned')
 
 # subset municipal covariates and create labels
 covariates <- names(analysis) %>% str_subset('mun\\.(?!id$)')
