@@ -54,7 +54,10 @@ ebt %<>%
     ebttime.outcome = ifelse(health.outcome1 | education.outcome1 |
       social.outcome1 | information.outcome1, 1, 0),
     ebtquality.outcome = ifelse(health.outcome2 | education.outcome2 |
-      social.outcome2 | information.outcome2, 1, 0))
+      social.outcome2 | information.outcome2, 1, 0)) %>%
+  group_by(mun.id) %>%
+  slice(which.min(ebt.year)) %>%
+  ungroup()
 
 # include audit data
 audit %<>%

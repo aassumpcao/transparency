@@ -209,16 +209,15 @@ corruption.reg0 <- outcomes[1:3] %>%
 # create formula for covariates and fixed-effects
 corruption.reg1 <- outcomes[1:3] %>%
   paste0(' ~ ebt.treatment + ') %>%
-  paste0(paste0(covariates, collapse = ' + ')) %>%
-  paste0(' | 0 | 0 | obs.year')
+  paste0(paste0(covariates, collapse = ' + '))
 
 # create formulas for all six regressions
-passive0.corruption <- felm(as.formula(corruption.reg0[2]), data = corrup.ds)
-passive1.corruption <- felm(as.formula(corruption.reg1[2]), data = corrup.ds)
-passive0.mismanagmt <- felm(as.formula(corruption.reg0[1]), data = corrup.ds)
-passive1.mismanagmt <- felm(as.formula(corruption.reg1[1]), data = corrup.ds)
-passive0.irregtotal <- felm(as.formula(corruption.reg0[3]), data = corrup.ds)
-passive1.irregtotal <- felm(as.formula(corruption.reg1[3]), data = corrup.ds)
+passive0.corruption <- lm(as.formula(corruption.reg0[2]), data = corrup.ds)
+passive1.corruption <- lm(as.formula(corruption.reg1[2]), data = corrup.ds)
+passive0.mismanagmt <- lm(as.formula(corruption.reg0[1]), data = corrup.ds)
+passive1.mismanagmt <- lm(as.formula(corruption.reg1[1]), data = corrup.ds)
+passive0.irregtotal <- lm(as.formula(corruption.reg0[3]), data = corrup.ds)
+passive1.irregtotal <- lm(as.formula(corruption.reg1[3]), data = corrup.ds)
 
 # produce table one: corruption outcomes
 stargazer(
@@ -239,10 +238,14 @@ stargazer(
   dep.var.caption = '',
   dep.var.labels.include = FALSE,
   align = TRUE,
+  se = list(cse(passive0.corruption), cse(passive1.corruption),
+            cse(passive0.mismanagmt), cse(passive1.mismanagmt),
+            cse(passive0.irregtotal), cse(passive1.irregtotal)),
   column.sep.width = '-2pt',
   digit.separate = 3,
   digits = 3,
   digits.extra = 0,
+  df = FALSE,
   font.size = 'scriptsize',
   header = FALSE,
   initial.zero = FALSE,
@@ -253,7 +256,7 @@ stargazer(
   omit = 'mun\\.',
   omit.labels = 'Municipal Controls',
   omit.yes.no = c('Yes', '-'),
-  omit.stat = 'ser',
+  omit.stat = c('ser', 'f'),
   table.placement = '!htbp'
 )
 
@@ -267,13 +270,13 @@ information.reg0 <- outcomes[4:5] %>%
 information.reg1 <- outcomes[4:5] %>%
   paste0(' ~ audit.treatment + ') %>%
   paste0(paste0(covariates, collapse = ' + ')) %>%
-  paste0(' | obs.year | 0 | mun.id')
+  paste0(' + factor(obs.year)')
 
 # create formulas for all six regresions
-active0.infotime <- felm(as.formula(information.reg0[1]), data = info.ds)
-active1.infotime <- felm(as.formula(information.reg1[1]), data = info.ds)
-active0.infoqual <- felm(as.formula(information.reg0[2]), data = info.ds)
-active1.infoqual <- felm(as.formula(information.reg1[2]), data = info.ds)
+active0.infotime <- lm(as.formula(information.reg0[1]), data = info.ds)
+active1.infotime <- lm(as.formula(information.reg1[1]), data = info.ds)
+active0.infoqual <- lm(as.formula(information.reg0[2]), data = info.ds)
+active1.infoqual <- lm(as.formula(information.reg1[2]), data = info.ds)
 
 # produce table two: information outcomes
 stargazer(
@@ -293,10 +296,13 @@ stargazer(
   dep.var.caption = '',
   dep.var.labels.include = FALSE,
   align = TRUE,
+  se = list(cse(active0.infotime), cse(active1.infotime),
+            cse(active0.infoqual), cse(active1.infoqual)),
   column.sep.width = '-2pt',
   digit.separate = 3,
   digits = 3,
   digits.extra = 0,
+  df = TRUE,
   font.size = 'scriptsize',
   header = FALSE,
   initial.zero = FALSE,
@@ -307,7 +313,7 @@ stargazer(
   omit = c('mun\\.', 'obs\\.year'),
   omit.labels = c('Municipal Controls', 'Year Fixed-Effects'),
   omit.yes.no = c('Yes', '-'),
-  omit.stat = 'ser',
+  omit.stat = c('ser', 'f'),
   table.placement = '!htbp'
 )
 
@@ -321,13 +327,13 @@ performance.reg0 <- outcomes[6:7] %>%
 performance.reg1 <- outcomes[6:7] %>%
   paste0(' ~ double.treatment + ') %>%
   paste0(paste0(covariates, collapse = ' + ')) %>%
-  paste0(' | obs.year | 0 | mun.id')
+  paste0(' + factor(obs.year)')
 
 # create formulas for all six regresions
-performance0.mdp       <- felm(as.formula(performance.reg0[1]), data = perf.ds)
-performance1.mdp       <- felm(as.formula(performance.reg1[1]), data = perf.ds)
-performance0.sanctions <- felm(as.formula(performance.reg0[2]), data = perf.ds)
-performance1.sanctions <- felm(as.formula(performance.reg1[2]), data = perf.ds)
+performance0.mdp       <- lm(as.formula(performance.reg0[1]), data = perf.ds)
+performance1.mdp       <- lm(as.formula(performance.reg1[1]), data = perf.ds)
+performance0.sanctions <- lm(as.formula(performance.reg0[2]), data = perf.ds)
+performance1.sanctions <- lm(as.formula(performance.reg1[2]), data = perf.ds)
 
 # produce table three: performance and sanction outcomes
 stargazer(
@@ -349,12 +355,13 @@ stargazer(
   dep.var.caption = '',
   dep.var.labels.include = FALSE,
   align = TRUE,
-  # se = list(cse(performance0.mdp), cse(performance1.mdp),
-  #           cse(performance0.sanctions), cse(performance1.sanctions)),
+  se = list(cse(performance0.mdp), cse(performance1.mdp),
+            cse(performance0.sanctions), cse(performance1.sanctions)),
   column.sep.width = '-2pt',
   digit.separate = 3,
   digits = 3,
   digits.extra = 0,
+  df = TRUE,
   font.size = 'scriptsize',
   header = FALSE,
   initial.zero = FALSE,
@@ -365,6 +372,6 @@ stargazer(
   omit = c('mun\\.', 'obs\\.year'),
   omit.labels = c('Municipal Controls', 'Year Fixed-Effects'),
   omit.yes.no = c('Yes', '-'),
-  omit.stat = 'ser',
+  omit.stat = c('ser', 'f'),
   table.placement = '!htbp'
 )
