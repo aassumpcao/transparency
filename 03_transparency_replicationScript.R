@@ -10,6 +10,7 @@ library(readxl)
 library(AER)
 library(stargazer)
 library(lfe)
+library(extrafont)
 
 # wrangle audit data
 source('00_transparency_auditData.R')

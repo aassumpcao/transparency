@@ -23,18 +23,44 @@ load('01_municipalCovariates.Rda')
 # define functions:
 #   calculate corrected SEs for OLS regression
 cse <- function(reg) {
-  # Args:
+  # args:
   #   reg: regression object
 
-  # Returns:
+  # returns:
   #   matrix of robust standard errors
 
-  # Body:
+  # body:
   #   call to vcovHC
   rob <- sqrt(diag(sandwich::vcovHC(reg, type = 'HC1')))
 
   #   return matrix
   return(rob)
+}
+
+#   calculate power for sampling strategy
+power <- function(n = 5570, alpha = .1, H0 = 0, H1 = .05, sig = 1) {
+  # args:
+  #   n:     sample size
+  #   alpha: significance level (one-sided)
+  #   h0:    mean of hypothesis zero
+  #   h1:    mean of alternative hypothesis
+  #   sig:   variance of sample distribution
+
+  # returns:
+  #   power calculation
+
+  # body:
+  #   find critical value of z
+  z_alpha <- qnorm(p = alpha, mean = 0, sd = 1, lower.tail = FALSE)
+
+  #   find the ybar_critical value
+  y_bar   <- z_alpha * (sig / sqrt(n)) + H0
+
+  #   calculate the power under h1.
+  power <- pnorm(q = y_bar, mean = H1, sd = sig / sqrt(n), lower.tail = FALSE)
+
+  #   report the power.
+  return(power)
 }
 
 ################################################################################
@@ -174,16 +200,16 @@ table$Variables <- c(cov.labels[1], NA, cov.labels[2], NA, cov.labels[3], NA,
                      cov.labels[10], NA, cov.labels[11], NA, 'Sample Size')
 
 # print table
-xtable::xtable(
-  # table object
-  table,
-  # styling arguments
-  caption = 'Descriptive Statistics by Treatment Condition',
-  label = 'tab:descriptivestats3',
-  align = rep('r', 11),
-  digits = 3,
-  display = rep('s', 11)
-) #%>%
+# xtable::xtable(
+#   # table object
+#   table,
+#   # styling arguments
+#   caption = 'Descriptive Statistics by Treatment Condition',
+#   label = 'tab:descriptivestats3',
+#   align = rep('r', 11),
+#   digits = 3,
+#   display = rep('s', 11)
+# ) %>%
 # xtable::print.xtable(
 #   # styling arguments
 #   file = './proposal3/tab_sumstats1.tex',
@@ -197,8 +223,50 @@ xtable::xtable(
 # wrangle data, print tabulation, and manually pass values to latex
 analysis %$% table(audit.treatment, ebt.treatment)
 
+################################################################################
+# graph one: plot power curve
+# clear graphical device
+dev.off()
+
+# two-sided power calculations
+pcurv.10 <- lapply(X = 1:5570, FUN = power, alpha = .050)
+pcurv.05 <- lapply(X = 1:5570, FUN = power, alpha = .025)
+pcurv.01 <- lapply(X = 1:5570, FUN = power, alpha = .005)
+
+# find 90% power using two-sided .05 alpha (.025 on each side)
+power(n = 4203)
+
+# define graphical file and font family argument
+# pdf(file = './proposal3/power.pdf')
+par(family = 'LM Roman 10')
+
+# plot the .1 alpha result (two-sided @ .05)
+plot(x = 1:5570, y = pcurv.10, type = 'l', xlab = 'Sample Size (n)',
+  ylim = c(0,1), ylab = expression(paste('Power When ', mu, ' = 5570')),
+  col = 'black', lwd = 2)
+
+# add horizontal and vertical lines
+abline(h = .9,   lty = 1, lwd = 2, col = 'darksalmon')
+abline(v = 4203, lty = 1, lwd = 2, col = 'darksalmon')
+
+# merge .05 and .01 alphas
+points(x = 1:5570, y = pcurv.10, type = 'l', col = 'black', lwd = 2)
+points(x = 1:5570, y = pcurv.05, type = 'l', col = 4, lwd = 2)
+points(x = 1:5570, y = pcurv.01, type = 'l', col = 'grey', lwd = 2)
+
+# insert grid
+grid(col = gray(.3))
+
+# insert label point at power = 90%
+text(x = 4500, y = .5, labels = 'n = 4203', cex = .75)
+
+# include legend
+legend(x = 3000, y = .4,  col = c('black' , 4, 'grey'), cex = .75, lwd = 2,
+  legend = c('two-sided alpha = .10', 'two-sided alpha = .05',
+  'two-sided alpha = .01'))
+
 # remove table to avoid confusion
-rm(list = objects(pattern = '^table$|sample|labels\\.row$'))
+rm(list = objects(pattern = '^table$|sample|labels\\.row$|pcurv'))
 
 ################################################################################
 # table one: corruption outcomes
