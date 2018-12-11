@@ -142,21 +142,93 @@ Corruption outcomes are only available for observations in row ``Audited'' while
 
 \subsubsection{Sampling Strategy} \label{subsec:sampling_paper3}
 
-This project is not a social experiment according to industry practices. The researcher is not manipulating the environment, has not chosen the outcomes of interest, and has no pre-analysis plan to bind the research methods and hypotheses \emph{ex-ante}. Its unique design, however, is in many ways similar to an experimental study allowing for causal identification of different transparency effects. By design, treatment participants are randomly selected from the universe of $\sim$5,570 Brazilian municipalities: both audit and EBT programs conducted stratified\footnote{Stratas were states in audits and  states and seven population brackets in EBT} random sampling of municipalities across time.
+This project is not a social experiment according to standard industry practices. The researcher is not manipulating the environment, has not chosen the outcomes of interest, and has no pre-analysis plan to bind the research methods and hypotheses \emph{ex-ante}. Its unique design, however, is in many ways similar to an experimental study allowing for causal identification of different transparency effects. Audit treatment participants are randomly selected from the universe of Brazilian municipalities both before and after the implementation of LAI, so I can mimic a combined randomized control trial (audits) plus difference-in-differences (LAI) design to isolate the causal effect of each transparency type.
 
-I have identified two relevant outcomes in this research design: government performance and sanctions imposed on local governments, politicians, and bureaucrats as the result of police and judicial investigations. I already have the panel with outcomes for all Brazilian municipalities over the period 2003 and 2018. The remaining steps to create the artificial two-by-two experimental design is the random draw of the control group. Following best practices in the experimental literature, I am aiming at a five percentage point minimum detectable effect with 90 percent power and five percent alpha.
+I have identified two relevant outcomes for this research design: government performance and sanctions imposed on local governments, politicians, and bureaucrats as the result of police and judicial investigations. I already have the panel with outcomes for all Brazilian municipalities over the period 2003 and 2018. The remaining step to create the artificial two-by-two experimental design is the random draw of the control group. Following best practices in the experimental literature, I am aiming at a five percentage point minimum detectable effect size with 90 percent power and five percent alpha. The power calculation is represented by figure \ref{fig:power} below and indicates a sample size of 4,203 municipalities, which means the control group should have at least 916 observations. Thus, in the final version of this project, I will include this subsample in the analysis in section \ref{subsec:results_paper3}. Unfortunately, I cannot balance the number of observations across all treatment conditions since I am using two interventions previously implemented by government.
+\clearpage
+\begin{figure}
+\centering
+\caption{Power Calculation for Sampling Strategy}
+\label{fig:power}
+\includegraphics[trim = {0 0 0 2cm}, clip, scale = .75]{power.pdf}
+\end{figure}
 
+The final sampling strategy follows closely that of audit lotteries, the reasoning being that EBT treatment is uniform across municipalities but only  outcomes are collected randomly (as discussed in section \ref{subsec:background_paper3}). The strata then are the six years and 26 states for which audit lotteries were conducted before 2012. The random draw and methodology will form an appendix to the final version of this project.
 
+\subsection{Theory and Hypotheses} \label{subsec:theory_paper3}
 
-\subsection{Theory} \label{subsec:theory_paper3}
+In this paper, I investigate the relationship between transparency and government performance. I suggest breaking down transparency into two finer subgroups, active and passive transparency, and look at two main outcomes that most closely align to similar studies in the literature.
+
+\subsubsection{Active Transparency} \label{subsubsec:theory1_paper3}
+
+Active transparency speaks to the studies looking at ways to prevent wrongdoing in government, mostly described by either corruption or misallocation of resources. \citet{BeckerCrimePunishmentEconomic1968,BeckerLawEnforcementMalfeasance1974,Rose-AckermanEconomicsCorruption1975} pioneered this field of research by suggesting that criminal behavior can be described by individual cost-benefit calculations, that government should choose an optimal level of law enforcement which depends on enforcement cost functions, and that corruption incentives depend on market structure in the provision of goods and services being contracted by government. Audits are attempts at uncovering wrongdoing, e.g.~increasing the probability of crime detection, that come at a cost of setting up teams, sending them out to municipalities, producing audit reports, and everything else involved in the investigations. Though these municipal corruption markets are likely decentralized, I can expect municipal governments to exert significant market power as a result of the low penetration of firms and markets in development settings. The efficiency gains of preventing corruption are likely to be large and thus we can expect better government performance in the presence of active transparency.
+
+\paragraph{Performance Hypothesis (H1a).} \emph{A municipal government that has experienced an active transparency intervention (audits) should see an improvement in government performance (measured by the adoption of urban development plans).}\\
+
+Increasing the detection of wrongdoing should be followed by the imposition of more sanctions, which comes from prosecuting authorities having more cases, or more evidence, available. The reasoning is straightforward. Prosecutors have a fixed endowment of time to pursue various criminal cases (income effect zero), see an inflow of government malfeasance cases or evidence (relative price of prosecuting such cases falls), and substitute out other cases for cases involving misuse of public office (substitution effect is positive). This relationship is captured in hypothesis 2a.
+
+\paragraph{Sanction Hypothesis (H2a).} \emph{The imposition of active transparency initiatives (audits) should be followed by an increase in sanctions imposed for government wrongdoing (measured by the likelihood of being targeted in operations seizing evidence and judicial convictions).} \\
+
+I lastly expect that audits positively impact information quality. When local governments welcome a team of auditors and have to go through their program records in order to answer inspector questions, it is likely that it will learn from the experience and improve information storage in response to increased scrutiny. As a result, both the time it takes to release information and the accuracy with which government data is communicated would see improvements after a CGU audit has taken place. Hypothesis 3 summarizes this reasoning.
+
+\paragraph{Information Hypothesis (H3).} \emph{In the presence of active transparency measures (audits), governments are likely to improve the quality of information release (measured by the time to respond to freedom of information requests and the accuracy of the information in the responses).}
+
+\subsubsection{Passive Transparency} \label{subsubsec:theory2_paper3}
+
+Passive transparency can also be seen as a measure to increase detection and prosecution of government crimes. However, it has not been as explored as other monitoring initiatives have, so its theoretical underpinnings are less widely understood.
+
+The first important question is whether any type of transparency is inherently positive (a discussion first held in \citet{PratWrongKindTransparency2005}). In the above case, the release of information concerning corruption or poor allocation of resources is beneficial, since both actions are detrimental to social welfare. Principals want less of both. This might not be true of passive transparency. Governments would scramble to organize their files and make sure all information is available at the expense of its core responsibilities. If, eventually, these data are not requested by anyone outside government, or if data are requested but there are no wrongdoings, then passive transparency has unequivocally consumed resources and has not produced social benefits.\footnote{The case where there are benefits of organizing information for active transparency is difference in at least two dimensions. First, the former case is primarily concerned with the use of resources instead of all data on government activities. The benefits of investigating an correcting use of funds is much more clear than that of making all municipal normative acts public; second, in cases where public administration is sound, it is likely that benefits of transparency have been exhausted or are close to zero as we can reasonably assume that the returns to transparency are decreasing in scale.} Mostly likely, social welfare improves where administration problems abound, i.e.~when public officials are not highly-skilled, or when there is an active civil society interested in government affairs. Moreover, if the implementation of freedom of information acts simultaneously reduces corruption and increases the detection of government malfeasance, these effects could largely offset each other and show no significant effect of passive transparency on government efficiency, as rightly suggested in \citet{CordisSunshineDisinfectantEffect2014}. As a result, I cautiously construct hypotheses H1b.
+
+\paragraph{Performance Hypothesis (H1b).} \emph{A municipal government that has experienced an passive transparency intervention (post-LAI) should see an improvement in government performance (measured by the adoption of urban development plans) of smaller magnitude when compared to active transparency.}\\
+
+Since active transparency is more focused and drives more attention to politicians and bureaucrats alike, I expect it to be a stronger driver of performance. Local governments in Brazil are generally less effective and usually attract less-skilled professionals, as discussed in [...], so I would still expect a positive but attenuated effect of LAI implementation. For the sanctions hypothesis, however, I expect a positive effect, the reason being that passive transparency is supports the application of sanctions on governments and officials since it expands the toolkit available to prosecuting authorities to collect data.
+
+\paragraph{Sanction Hypothesis (H2b).} \emph{The imposition of passive transparency initiatives should be followed by an increase in sanctions imposed for government wrongdoing (measured by the likelihood of being targeted in operations seizing evidence and judicial convictions).} \\
+
+The impact on corruption should also be straightforward. For municipalities that have experienced an audit in the past, that know the implications of being audited and the legal risks of inspection findings for governments, politicians, and officials, the adoption of LAI should be an additional source of concern that have a strong discipling effect on the use of resources. Hypothesis 4 summarizes this relationship.
+
+\paragraph{Corruption Hypothesis (H4).} \emph{In the presence of passive transparency initiatives (LAI), governments shift away from corruption.}
+
+Clearly, I cannot know with certainty whether corruption has reduced because corrupt officials have decided to steer clear from such practices or because they have become more skilled at hiding their behavior. In the preliminary analysis section (\ref{subsec:results_paper3}), I suggest looking at other audit outcomes to try and answer this question.
+
+\subsubsection{Active and Passive Transparency} \label{subsubsec:theory3_paper3}
+
+The double treatment is available for the performance and sanction outcomes. As discussed in previous sections, however, I unfortunately do not observe corruption and information outcomes for all municipalities in this sample. This is a direct limitation of the exogenous shocks and outcome measurements created by audit and LAI interventions. Nevertheless, the evidence I present in cross-effect analysis are also new to the literature and contribute to the relevance of this project.
+
+I first claim that double treatment effects will be smaller than single treatment effects combined. In other words, I am suggesting that the interaction between active and passive monitoring produces decreasing returns to scale. When a municipality has experienced one type of transparency, the other would just marginally add to improving social welfare.
+
+\paragraph{Performance Hypothesis (H1).} \emph{A municipal government experiencing double transparency treatment should see a proportionally smaller performance improvement than the sum of the two independent treatment effects.}
+
+\paragraph{Sanction Hypothesis (H2).} \emph{A municipal government experiencing double transparency treatment should see a proportionally smaller sanction improvement than the sum of the two independent treatment effects.} \\
+
+The decreasing returns come from various sources. First, both treatments might reveal the same information used for prosecuting wrongdoing or create the same incentives for setting up a urban development plan. Second, governments, politicians, and bureaucrats might not perceive the second transparency intervention as concerning as the first. Once problems, or sound governance, have been revealed in the first wave of transparency, there is a smaller reputation effect of confirming further good or bad governance. In fact, there is no way of knowing whether there will be a second information release action since establishing freedom of information channels does not imply the release of public documents (which is true for audits). Therefore, it seems straightforward to conclude that double treatment has decreasing returns to scale. In sum, table displays the relationships in this section.
+\clearpage
+\begin{table}[!htbp]
+  \caption{Hypotheses Table by Treatment Condition}
+  \label{tab:hypotheses3}
+  \centering
+  \scriptsize
+  \begin{tabular}{l|p{1.5cm}|p{1.5cm}|p{1.5cm}}
+  \hline
+  \hline
+                   & \multicolumn{1}{c}{Double}& \multicolumn{1}{c}{Active}& \multicolumn{1}{c}{Passive} \T \B \\
+  \hline
+  (H1) Performance & \multicolumn{1}{c}{$+$}   & \multicolumn{1}{c}{$+$}   & \multicolumn{1}{c}{$+$}     \T \B \\
+  (H2) Sanction    & \multicolumn{1}{c}{$+$}   & \multicolumn{1}{c}{$+$}   & \multicolumn{1}{c}{$+$}     \T \B \\
+  (H3) Information & \multicolumn{1}{c}{}      & \multicolumn{1}{c}{$+$}   & \multicolumn{1}{c}{$+$}     \T \B \\
+  (H4) Corruption  & \multicolumn{1}{c}{}      & \multicolumn{1}{c}{$-$}   & \multicolumn{1}{c}{$-$}     \T \B \\
+  \hline
+  \hline
+  \end{tabular}
+\end{table}
 
 \subsection{Empirical Strategy} \label{subsec:methods_paper3}
 
 \subsection{Preliminary Results} \label{subsec:results_paper3}
 
-\input{tab_corruption1}
-
 \input{tab_transparency2}
+
+\input{tab_corruption1}
 
 \input{tab_performance3}
 

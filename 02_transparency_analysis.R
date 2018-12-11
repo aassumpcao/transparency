@@ -269,13 +269,22 @@ legend(x = 3000, y = .4,  col = c('black' , 4, 'grey'), cex = .75, lwd = 2,
 rm(list = objects(pattern = '^table$|sample|labels\\.row$|pcurv'))
 
 ################################################################################
+# table: frequencies for sampling strategy
+# display sample size by year
+filter(analysis, obs.year < 2012) %$%
+  table(obs.year) %>%
+  prop.table() %>%
+  as.tibble() %>%
+  transmute(year = obs.year, frequency = n * 100, mun.n = round(n * 916, 0))
+
+################################################################################
 # table one: corruption outcomes
 # create formula with no covariates
-corruption.reg0 <- outcomes[1:3] %>%
+corruption.reg0 <- outcomes[c(1:3, 6:7)] %>%
   paste0(' ~ ebt.treatment')
 
 # create formula for covariates and fixed-effects
-corruption.reg1 <- outcomes[1:3] %>%
+corruption.reg1 <- outcomes[c(1:3, 6:7)] %>%
   paste0(' ~ ebt.treatment + ') %>%
   paste0(paste0(covariates, collapse = ' + '))
 
