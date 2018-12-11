@@ -118,7 +118,7 @@ While the random audit program both creates an exogenous shock of active transpa
 
 \subsection{Data} \label{subsec:data_paper3}
 
-The data come from various sources and spans over multiple years (2003-2018). I construct a unbalanced panel of Brazilian municipalities with corruption, information, performance, and sanction outcomes. The variables of interest are audit (active) treatment, EBT (passive) treatment, and both (active and passive transparency). I supplement all analyses with municipal covariates and year of observation indicator variables.
+The data come from various sources and spans over multiple years (2003-2018). I construct a repeated cross-section database of Brazilian municipalities with corruption, information, performance, and sanction outcomes. The variables of interest are audit (active) treatment, EBT (passive) treatment, and both (active and passive transparency). I supplement all analyses with municipal covariates and year of observation indicator variables.
 
 Corruption outcomes come from the random audit program run by CGU until 2015. For transparency purposes, I use the same dataset as \citet{FinanGovernmentAuditsReduce2018}, which is public available as a response to a freedom of information request on CGU's website. It contains all inspection orders in municipalities randomly selected for audits since 2006, which is when CGU developed their standardized coding of corruption and mismanagement infractions. The corruption, mismanagement, and number of irregularities outcomes are the same as \citet{FinanGovernmentAuditsReduce2018}, i.e.~the (logged) number of infractions of each type. The level of observation is the municipality-lottery pair, so there are 1,084 observations for 1,011 unique municipalities in this dataset.\footnote{This reflects the fact that some municipalities have been randomly selected to inspection more than once.}
 
@@ -223,6 +223,14 @@ The decreasing returns come from various sources. First, both treatments might r
 \end{table}
 
 \subsection{Empirical Strategy} \label{subsec:methods_paper3}
+
+I estimate the effect of both types of transparency on repeated cross-sections of municipal observations in Brazil between 2006 and 2017. Municipal characteristics are observed in one point in time and enter the data into one of the four quadrants of table \ref{tab:treatmentarms}. Since CGU audits are randomly assigned to
+
+\begin{equation}
+  y_{i} = \alpha + \rho \cdot \text{EBT}_{i} + X \beta + \sum \lambda_{i,k} + \varepsilon_{i}
+\end{equation}
+
+
 
 \subsection{Preliminary Results} \label{subsec:results_paper3}
 
