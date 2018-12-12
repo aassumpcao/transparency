@@ -456,3 +456,11 @@ i = 3
 table
 960+124
 
+
+
+SchoolAidDataset %$% table(councillor_support)
+SchoolAidDataset %$% table(mp_support)
+SchoolAidDataset %$% table(councillor_performance2)
+SchoolAidDataset %$% table(councillor_performance3)
+SchoolAidDataset %$% table(councillor_performance4)
+

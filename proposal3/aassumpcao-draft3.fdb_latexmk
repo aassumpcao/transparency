@@ -1,12 +1,12 @@
 # Fdb version 3
-["bibtex aassumpcao-draft3"] 1544581877 "aassumpcao-draft3.aux" "aassumpcao-draft3.bbl" "aassumpcao-draft3" 1544581984
+["bibtex aassumpcao-draft3"] 1544647532 "aassumpcao-draft3.aux" "aassumpcao-draft3.bbl" "aassumpcao-draft3" 1544650804
   "/Users/aassumpcao/library.bib" 1544579961 487754 1903d7fcd540454e168a6691a2f7eab2 ""
   "/usr/local/texlive/2018/texmf-dist/bibtex/bst/base/apalike.bst" 1480098433 24635 604dafcc79f521a11ea73e506e1fbd98 ""
-  "aassumpcao-draft3.aux" 1544581983 9327 17e1e1f40f0b137d65cb72ca3eb31a15 ""
+  "aassumpcao-draft3.aux" 1544650804 9327 dfc67c43523d317f91ce9af7c740fe1e ""
   (generated)
-  "aassumpcao-draft3.bbl"
   "aassumpcao-draft3.blg"
-["pdflatex"] 1544581983 "aassumpcao-draft3.tex" "aassumpcao-draft3.pdf" "aassumpcao-draft3" 1544581984
+  "aassumpcao-draft3.bbl"
+["pdflatex"] 1544650803 "aassumpcao-draft3.tex" "aassumpcao-draft3.pdf" "aassumpcao-draft3" 1544650804
   "/usr/local/texlive/2018/texmf-dist/fonts/map/fontname/texfonts.map" 1511824771 3332 103109f5612ad95229751940c61aada0 ""
   "/usr/local/texlive/2018/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1480098698 1004 54797486969f23fa377b128694d548df ""
   "/usr/local/texlive/2018/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1480098698 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
@@ -199,10 +199,10 @@
   "/usr/local/texlive/2018/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1528426230 2849778 d20fd0a0d92d412ec9b4143de20d68a5 ""
   "/usr/local/texlive/2018/texmf-var/web2c/pdftex/pdflatex.fmt" 1528423583 4220582 296642f53d93cdbc02373533d0f42b0a ""
   "/usr/local/texlive/2018/texmf.cnf" 1523934483 577 0b39adfd7c93507ff20c9c14c2f1a33f ""
-  "aassumpcao-draft3.aux" 1544581983 9327 17e1e1f40f0b137d65cb72ca3eb31a15 ""
-  "aassumpcao-draft3.bbl" 1544581877 6589 15f449923712b45cdd4c38621d0df40d "bibtex aassumpcao-draft3"
-  "aassumpcao-draft3.out" 1544581983 2082 e352a814b4667133e856230f3faf15b8 ""
-  "aassumpcao-draft3.tex" 1544581983 45422 5038c3a35dc9e747522af9c7d93a535d ""
+  "aassumpcao-draft3.aux" 1544650804 9327 dfc67c43523d317f91ce9af7c740fe1e ""
+  "aassumpcao-draft3.bbl" 1544647532 6589 15f449923712b45cdd4c38621d0df40d "bibtex aassumpcao-draft3"
+  "aassumpcao-draft3.out" 1544650804 2082 e352a814b4667133e856230f3faf15b8 ""
+  "aassumpcao-draft3.tex" 1544650803 52273 54256589cec36fa5ceec46ca499c447c ""
   "power.pdf" 1544538212 110582 65a41a5f128e81d7e37cd9eec49cb8e1 ""
   "tab_corruption1.tex" 1544482966 2316 2d65f6ade77c853e24d5be9ab9feb990 ""
   "tab_performance3.tex" 1544581876 2129 06cae8402356c8ab24cd2362dc428e5b ""
@@ -210,7 +210,7 @@
   "tab_transparency2.tex" 1544485162 2062 b05754258e2536804501bafba5c8b823 ""
   "tab_treatarms.tex" 1544488084 547 5fa682c796ce962af4e47fefb8bed6f9 ""
   (generated)
-  "aassumpcao-draft3.aux"
   "aassumpcao-draft3.pdf"
-  "aassumpcao-draft3.out"
   "aassumpcao-draft3.log"
+  "aassumpcao-draft3.out"
+  "aassumpcao-draft3.aux"

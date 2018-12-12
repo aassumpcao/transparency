@@ -278,7 +278,64 @@ filter(analysis, obs.year < 2012) %$%
   transmute(year = obs.year, frequency = n * 100, mun.n = round(n * 916, 0))
 
 ################################################################################
-# table one: corruption outcomes
+# table one: information outcomes
+# create formula with no covariates
+information.reg0 <- outcomes[4:5] %>%
+  paste0(' ~ audit.treatment')
+
+# create formula for covariates and fixed-effects
+information.reg1 <- outcomes[4:5] %>%
+  paste0(' ~ audit.treatment + ') %>%
+  paste0(paste0(covariates, collapse = ' + ')) %>%
+  paste0(' + factor(obs.year)')
+
+# create formulas for all six regresions
+active0.infotime <- lm(as.formula(information.reg0[1]), data = info.ds)
+active1.infotime <- lm(as.formula(information.reg1[1]), data = info.ds)
+active0.infoqual <- lm(as.formula(information.reg0[2]), data = info.ds)
+active1.infoqual <- lm(as.formula(information.reg1[2]), data = info.ds)
+
+# produce table two: information outcomes
+stargazer(
+
+  # regressions with outcome 1: outcome.elected
+  list(active0.infotime, active1.infotime, active0.infoqual, active1.infoqual),
+
+  # table cosmetics
+  type = 'text',
+  title = 'The Effect of Active Transparency on Information Requests',
+  style = 'default',
+  # out = './proposal3/tab_transparency2.tex',
+  out.header = FALSE,
+  column.labels = o.labels[4:5],
+  column.separate = rep(2, 2),
+  covariate.labels = c(t.labels[1], cov.labels),
+  dep.var.caption = '',
+  dep.var.labels.include = FALSE,
+  align = TRUE,
+  se = list(cse(active0.infotime), cse(active1.infotime),
+            cse(active0.infoqual), cse(active1.infoqual)),
+  column.sep.width = '-2pt',
+  digit.separate = 3,
+  digits = 3,
+  digits.extra = 0,
+  df = TRUE,
+  font.size = 'scriptsize',
+  header = FALSE,
+  initial.zero = FALSE,
+  model.names = FALSE,
+  keep = c('audit'),
+  label = 'tab:transparency2',
+  no.space = FALSE,
+  omit = c('mun\\.', 'obs\\.year'),
+  omit.labels = c('Municipal Controls', 'Year Fixed-Effects'),
+  omit.yes.no = c('Yes', '-'),
+  omit.stat = c('ser', 'f'),
+  table.placement = '!htbp'
+)
+
+################################################################################
+# table two: corruption outcomes
 # create formula with no covariates
 corruption.reg0 <- outcomes[c(1:3, 6:7)] %>%
   paste0(' ~ ebt.treatment')
@@ -332,63 +389,6 @@ stargazer(
   no.space = FALSE,
   omit = 'mun\\.',
   omit.labels = 'Municipal Controls',
-  omit.yes.no = c('Yes', '-'),
-  omit.stat = c('ser', 'f'),
-  table.placement = '!htbp'
-)
-
-################################################################################
-# table two: information outcomes
-# create formula with no covariates
-information.reg0 <- outcomes[4:5] %>%
-  paste0(' ~ audit.treatment')
-
-# create formula for covariates and fixed-effects
-information.reg1 <- outcomes[4:5] %>%
-  paste0(' ~ audit.treatment + ') %>%
-  paste0(paste0(covariates, collapse = ' + ')) %>%
-  paste0(' + factor(obs.year)')
-
-# create formulas for all six regresions
-active0.infotime <- lm(as.formula(information.reg0[1]), data = info.ds)
-active1.infotime <- lm(as.formula(information.reg1[1]), data = info.ds)
-active0.infoqual <- lm(as.formula(information.reg0[2]), data = info.ds)
-active1.infoqual <- lm(as.formula(information.reg1[2]), data = info.ds)
-
-# produce table two: information outcomes
-stargazer(
-
-  # regressions with outcome 1: outcome.elected
-  list(active0.infotime, active1.infotime, active0.infoqual, active1.infoqual),
-
-  # table cosmetics
-  type = 'text',
-  title = 'The Effect of Active Transparency on Information Requests',
-  style = 'default',
-  # out = './proposal3/tab_transparency2.tex',
-  out.header = FALSE,
-  column.labels = o.labels[4:5],
-  column.separate = rep(2, 2),
-  covariate.labels = c(t.labels[1], cov.labels),
-  dep.var.caption = '',
-  dep.var.labels.include = FALSE,
-  align = TRUE,
-  se = list(cse(active0.infotime), cse(active1.infotime),
-            cse(active0.infoqual), cse(active1.infoqual)),
-  column.sep.width = '-2pt',
-  digit.separate = 3,
-  digits = 3,
-  digits.extra = 0,
-  df = TRUE,
-  font.size = 'scriptsize',
-  header = FALSE,
-  initial.zero = FALSE,
-  model.names = FALSE,
-  keep = c('audit'),
-  label = 'tab:transparency2',
-  no.space = FALSE,
-  omit = c('mun\\.', 'obs\\.year'),
-  omit.labels = c('Municipal Controls', 'Year Fixed-Effects'),
   omit.yes.no = c('Yes', '-'),
   omit.stat = c('ser', 'f'),
   table.placement = '!htbp'
