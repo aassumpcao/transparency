@@ -185,8 +185,16 @@ sample.row <- c(audit.obs, '', ebt.obs, '', double.obs, '') %>%
               {setNames(as.list(.), paste0('V', 1:9))} %>%
               as.tibble()
 
+# calculate statistically significance by hand
+table %>%
+  select(V3, V6, V9) %>%
+  data.table::transpose() %>%
+  as.tibble() %>%
+
+
+
 # insert rows
-table %<>%
+table %>%
   mutate_all(as.numeric) %>%
   mutate_all(round, digits = 3) %>%
   mutate_all(as.character) %>%
