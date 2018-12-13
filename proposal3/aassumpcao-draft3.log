@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.6.7)  13 DEC 2018 11:31
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.6.7)  13 DEC 2018 16:04
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -938,15 +938,13 @@ Overfull \hbox (12.0pt too wide) in paragraph at lines 8--45
  [][] 
  []
 
-) [7] (./tab_treatarms.tex) [8] [9]
-<power.pdf, id=211, 505.89pt x 361.35pt>
+) [7] (./tab_treatarms.tex) [8]
+<power.pdf, id=207, 505.89pt x 361.35pt>
 File: power.pdf Graphic file (type pdf)
 <use power.pdf>
 Package pdftex.def Info: power.pdf  used on input line 154.
-(pdftex.def)             Requested size: 379.41655pt x 228.33281pt.
- [10
-
- <./power.pdf>]
+(pdftex.def)             Requested size: 379.41655pt x 217.66307pt.
+ [9 <./power.pdf>]
 Underfull \hbox (badness 10000) in paragraph at lines 167--168
 
  []
@@ -956,7 +954,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 171--172
 
  []
 
-[11]
+[10]
 Underfull \hbox (badness 10000) in paragraph at lines 183--184
 
  []
@@ -966,29 +964,27 @@ Underfull \hbox (badness 10000) in paragraph at lines 187--188
 
  []
 
-[12]
+[11]
+Underfull \hbox (badness 10000) in paragraph at lines 191--192
+
+ []
+
+
 Underfull \hbox (badness 10000) in paragraph at lines 203--204
 
  []
 
-[13] [14
-
-]
-Underfull \hbox (badness 10000) in paragraph at lines 249--250
-
+[12] [13] (./tab_transparency2.tex) [14] (./tab_corruption1.tex
+Overfull \hbox (2.60289pt too wide) in paragraph at lines 6--28
+ [][] 
  []
 
-(./tab_transparency2.tex)
-Underfull \hbox (badness 10000) in paragraph at lines 253--254
+) [15] (./tab_performance3.tex) [16
 
- []
+] [17] (./aassumpcao-draft3.bbl [18
 
-[15] (./tab_corruption1.tex) [16] (./tab_performance3.tex) [17
-
-] [18]
-(./aassumpcao-draft3.bbl [19
-
-]) [20]
+])
+[19]
 Package atveryend Info: Empty hook `BeforeClearDocument' on input line 281.
 Package atveryend Info: Empty hook `AfterLastShipout' on input line 281.
  (./aassumpcao-draft3.aux)
@@ -999,13 +995,13 @@ Package rerunfilecheck Info: File `aassumpcao-draft3.out' has not changed.
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 281.
  ) 
 Here is how much of TeX's memory you used:
- 23338 strings out of 492646
- 403475 string characters out of 6129564
+ 23336 strings out of 492646
+ 403457 string characters out of 6129564
  487014 words of memory out of 5000000
  26713 multiletter control sequences out of 15000+600000
  14654 words of font info for 56 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 55i,12n,54p,2245b,467s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 55i,12n,54p,2378b,467s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
 </usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><
@@ -1022,10 +1018,10 @@ ive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive
 18/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2018
 /texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2018/
 texmf-dist/fonts/type1/public/amsfonts/cm/cmti8.pfb>
-Output written on aassumpcao-draft3.pdf (21 pages, 378140 bytes).
+Output written on aassumpcao-draft3.pdf (20 pages, 378782 bytes).
 PDF statistics:
- 398 PDF objects out of 1000 (max. 8388607)
- 352 compressed objects within 4 object streams
- 86 named destinations out of 1000 (max. 500000)
+ 395 PDF objects out of 1000 (max. 8388607)
+ 350 compressed objects within 4 object streams
+ 84 named destinations out of 1000 (max. 500000)
  112 words of extra memory for PDF output out of 10000 (max. 10000000)
 

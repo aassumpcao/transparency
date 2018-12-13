@@ -185,16 +185,25 @@ sample.row <- c(audit.obs, '', ebt.obs, '', double.obs, '') %>%
               {setNames(as.list(.), paste0('V', 1:9))} %>%
               as.tibble()
 
-# calculate statistically significance by hand
+# calculate statistically significance by hand and paste onto table
 table %>%
   select(V3, V6, V9) %>%
   data.table::transpose() %>%
   as.tibble() %>%
-
-
+  mutate_all(as.double) %>%
+  transmute(
+    pvalue1  =  V1 / V2,  pvalue2  =  V3 / V4,  pvalue3 =  V5 / V6,
+    pvalue4  =  V7 / V8,  pvalue5  =  V9 / V10, pvalue6 = V11 / V12,
+    pvalue7  = V13 / V14, pvalue8  = V15 / V16, pvalue9 = V17 / V18,
+    pvalue10 = V19 / V20, pvalue11 = V21 / V22) %>%
+  mutate_all(funs(case_when(abs(.) >= 2.576 ~ '***',
+                            abs(.) < 2.576 & abs(.) >= 1.960 ~ '**',
+                            abs(.) < 1.960 & abs(.) >= 1.645 ~ '*',
+                            abs(.) < 1.645 ~ NA_character_))) %>%
+  data.table::transpose()
 
 # insert rows
-table %>%
+table %<>%
   mutate_all(as.numeric) %>%
   mutate_all(round, digits = 3) %>%
   mutate_all(as.character) %>%
