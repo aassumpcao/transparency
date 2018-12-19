@@ -12,6 +12,9 @@ library(stargazer)
 library(lfe)
 library(extrafont)
 
+# load rproj (comment out if using another R IDE)
+rstudioapi::openProject('2019 Active and Passive Transparency.Rproj')
+
 # wrangle audit data
 source('00_transparency_auditData.R')
 
