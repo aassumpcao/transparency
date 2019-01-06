@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.6.7)  24 DEC 2018 10:59
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.6.7)  6 JAN 2019 17:11
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -939,7 +939,7 @@ Overfull \hbox (12.0pt too wide) in paragraph at lines 8--45
  []
 
 ) [7] (./tab_treatarms.tex) [8]
-<power.pdf, id=205, 505.89pt x 361.35pt>
+<power.pdf, id=207, 505.89pt x 361.35pt>
 File: power.pdf Graphic file (type pdf)
 <use power.pdf>
 Package pdftex.def Info: power.pdf  used on input line 154.
@@ -985,14 +985,14 @@ Overfull \hbox (2.60289pt too wide) in paragraph at lines 6--28
 
 ])
 [19]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 279.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 279.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 280.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 280.
  (./aassumpcao-draft3.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 279.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 279.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 280.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 280.
 Package rerunfilecheck Info: File `aassumpcao-draft3.out' has not changed.
 (rerunfilecheck)             Checksum: A7E37B1EB175B7E24A45E8C086B4DCE0;1587.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 279.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 280.
  ) 
 Here is how much of TeX's memory you used:
  23336 strings out of 492646
@@ -1001,7 +1001,7 @@ Here is how much of TeX's memory you used:
  26713 multiletter control sequences out of 15000+600000
  14654 words of font info for 56 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 55i,12n,54p,2378b,467s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 55i,12n,54p,2355b,467s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
 </usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><
@@ -1018,10 +1018,10 @@ ive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive
 18/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2018
 /texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2018/
 texmf-dist/fonts/type1/public/amsfonts/cm/cmti8.pfb>
-Output written on aassumpcao-draft3.pdf (20 pages, 378283 bytes).
+Output written on aassumpcao-draft3.pdf (20 pages, 379106 bytes).
 PDF statistics:
- 393 PDF objects out of 1000 (max. 8388607)
- 348 compressed objects within 4 object streams
+ 394 PDF objects out of 1000 (max. 8388607)
+ 349 compressed objects within 4 object streams
  84 named destinations out of 1000 (max. 500000)
  112 words of extra memory for PDF output out of 10000 (max. 10000000)
 
