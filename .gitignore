@@ -35,3 +35,15 @@ vignettes/*.pdf
 # Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
 rsconnect/
 .Rproj.user
+
+# folders
+data_input
+data_output
+proposal3
+rdereports
+munic
+presentations
+unused
+
+# files
+*.tex
