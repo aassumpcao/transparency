@@ -1,54 +1,45 @@
-################################################################################
-# active passive transparency paper
-# sanctions data wrangling
-
+### active and passive transparency
 # this script wrangles sanctions data used for all municipalities in our sample.
-# there are three sources of sanction data: (1) police requests made to CGU for
-# the investigation of corruption and misconduct in public office; (2) CGU/Feds
-# in public office
-
-# by andre.assumpcao@gmail.com
+#  there are three sources of sanction data: (1) police requests made to cgu for
+#  the investigation of corruption and misconduct in public office; (2) cgu/feds
+#  in public office
+# author: andre assumpcao
+# email:  andre.assumpcao@gmail.com
 
 # import statements
-library(here)
-library(tidyverse)
 library(magrittr)
 library(readxl)
-# library(pdftools)
+library(tidyverse)
 
 # load datasets
-load('ibge.dataset.Rda')
+load('data_input/ibge_dataset.Rda')
 
-################################################################################
 # wrangle legal authorities cooperation dataset
-rde <- read_excel('LAI 00075.001622-2018-19.xlsx')
+rde <- readxl::read_excel('data_input/LAI 00075.001622-2018-19.xlsx')
 
-# create year of investigation variable. we extract the year from the case
-#   unique id. if the case unique id is missing, i recover from the year of
-#   investigation variable
+# create year of investigation variable. we extract the year from the unique
+#  case id. if the unique case id is missing, i recover the date from the year
+#  of investigation.
 # extract year when case id is not standardized to 17-digit id
-date.fix1 <- rde %>%
+date_fix1 <- rde %>%
   filter(nchar(Nr_Processo) < 17) %>%
   mutate(rde.year = substr(Nr_Ordem_Servico, 1, 4))
 
 # extract year when the case is perfectly coded as the standard 17-digit id
-date.fix2 <- rde %>%
+date_fix2 <- rde %>%
   filter(nchar(Nr_Processo) == 17) %>%
   mutate(rde.year = substr(Nr_Processo, 12, 15)) %>%
   filter(rde.year %in% c(2003:2018))
 
-# extract year when case does have 17 digits but does not match standard
-date.fix3 <- rde %>%
+# extract year when the case id has 17 digits but does not match standard
+date_fix3 <- rde %>%
   filter(nchar(Nr_Processo) == 17) %>%
   filter(!(substr(Nr_Processo, 12, 15) %in% c(2003:2018))) %>%
   mutate(rde.year = substr(Nr_Ordem_Servico, 1, 4))
 
-# bind them together. in the process, we drop the reports on the state capitals
-# that have nothing to do with police investigations.
-rde <- rbind(date.fix1, date.fix2, date.fix3)
-
-# remove previous temporary objects
-rm(list = objects(pattern = '\\.fix'))
+# bind them together. in the process, we drop the reports of the state capitals
+#  that have nothing to do with police investigations.
+rde <- rbind(date_fix1, date_fix2, date_fix3)
 
 # drop reports that are not originated by police investigations
 rde %<>% filter(!is.na(Demanda))
@@ -57,12 +48,12 @@ rde %<>% filter(!is.na(Demanda))
 # # date they were conducted to narrow in on their status before or after lai
 # dir.create('./rdereports/')
 
-# define destination files for download
-pdf.names <- rde %>%
-  filter(rde.year == 2012) %$%
-  unique(IdRelatorioPublicacao) %>%
-  paste0('.pdf') %>%
-  {paste0('./rdereports/', .)}
+# # define destination files for download
+# pdf.names <- rde %>%
+#   filter(rde.year == 2012) %$%
+#   unique(IdRelatorioPublicacao) %>%
+#   paste0('.pdf') %>%
+#   {paste0('data_input/rdereports/', .)}
 
 # # download all files
 # rde %>%
@@ -71,30 +62,27 @@ pdf.names <- rde %>%
 #   {paste0('https://auditoria.cgu.gov.br/download/', ., '.pdf')} %>%
 #   {mapply(download.file, ., destfile = pdf.names)}
 
-# write to disk
-save(rde, file = '00_rde.Rda')
+# save rde to file
+save(rde, file = 'data_output/rde.Rda')
 
-# remove unnecessary objects
-rm(pdf.names)
-
-################################################################################
 # wrangle federal policy and CGU crackdown operations dataset
 # import from avis, ferraz, and finan (2018) @ the jpe (2003-2015)
-crackdown1 <- haven::read_stata('table4-1.dta')
+crackdown1 <- haven::read_stata('data_input/table4-1.dta') %>%
+              mutate_at(vars(cod_munic), as.character)
 
 # import from cgu (2016-2018)
-crackdown2 <- read_excel('Operacoes_Especiais_20181001.xlsx') %>%
+crackdown2 <- read_excel('data_input/Operacoes_Especiais_20181001.xlsx') %>%
               filter(!(is.na(str_count(uf, ';')) | is.na(str_count(mun, ';'))))
 
 # fix the number of state and municipality entries for each crackdown operation
 # split sample where everything is correct
-crackdown2.1 <- crackdown2 %>%
+crackdown2_1 <- crackdown2 %>%
   filter(!is.na(mun)) %>%
   filter(!str_detect(mun, 'Estado')) %>%
   filter(str_count(uf, ';') == str_count(mun, ';'))
 
-# split sample where all municipalities are in the same state
-crackdown2.2 <- crackdown2 %>%
+# split sample when all municipalities are in the same state
+crackdown2_2 <- crackdown2 %>%
   filter(!is.na(mun)) %>%
   filter(!str_detect(mun, 'Estado')) %>%
   filter(str_count(uf, ';') < str_count(mun, ';')) %>%
@@ -102,23 +90,21 @@ crackdown2.2 <- crackdown2 %>%
   mutate(uf = paste0(uf, strrep(paste0(';', uf), str_count(mun, ';'))))
 
 # split sample for the case where there is mix of municipalities and states
-crackdown2.3 <- crackdown2 %>%
+crackdown2_3 <- crackdown2 %>%
   filter(!is.na(mun)) %>%
   filter(!str_detect(mun, 'Estado')) %>%
   filter(str_count(uf, ';') < str_count(mun, ';')) %>%
   filter(str_count(uf, ';') > 0)
 
 # fill states in manually
-crackdown2.3$uf <- c('MS;MS;PR;PR;SP;SP', 'PB;PB;PB;RN;PE', 'MS;MT;MT;SP',
+crackdown2_3$uf <- c('MS;MS;PR;PR;SP;SP', 'PB;PB;PB;RN;PE', 'MS;MT;MT;SP',
   'MA;MA;TO;TO;GO', 'MA;MA;TO;TO;GO', 'GO;GO;GO;PR;PR;SC;DF',
   'PR;PR;PR;PR;PR;PR;RJ;RJ', 'AL;AL;AL;AL;AL;AL;AL;AL;AL;AL;AL;AL;PE;PE',
-  'PR;PR;MS;MS;RN', 'MG;MG;MG;GO;MG;MG;MG', 'SC;SC;DF')
+  'PR;PR;MS;MS;RN', 'MG;MG;MG;GO;MG;MG;MG', 'SC;SC;DF'
+)
 
 # bind them together
-crackdown2 <- rbind(crackdown2.1, crackdown2.2, crackdown2.3)
-
-# remove unnecessary files
-# rm(list = objects(pattern = '2\\.'))
+crackdown2 <- rbind(crackdown2_1, crackdown2_2, crackdown2_3)
 
 # expand rows by the number of municipalities audited
 crackdown2 %<>% separate_rows(uf, mun, sep = ';')
@@ -147,7 +133,7 @@ crackdown2 %<>%
 
 # find ibge id for crackdown2 municipalities
 # create abbreviation for IBGE states
-fullname <- ibge.dataset %$% unique(UF) %>% sort()
+fullname <- ibge_dataset %$% unique(UF) %>% sort()
 partname <- c('AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT',
               'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO',
               'RR', 'SC', 'SP', 'SE', 'TO')
@@ -157,7 +143,7 @@ states <- tibble(fullname, partname)
 
 # merge state IDs onto ibge data, convert case in municipality name, change
 # encoding before fuzzy matching with crackdown dataset
-ibge.dataset %<>%
+ibge_dataset %<>%
   left_join(states, by = c('UF' = 'fullname')) %>%
   mutate(mun = str_to_title(NomeMunic), uf = partname) %>%
   mutate(mun = stringi::stri_trans_general(mun, 'Latin-ASCII')) %>%
@@ -171,38 +157,39 @@ crackdown2 %<>%
 # run fuzzy match on municipality name and compute levenshtein distance. this
 # process yields 1-to-many matches since there's no match on states. max lv
 # distance is two because anything beyond one lv distance becomes too messy.
-crackdown.fuzzy <- crackdown2 %>%
-  fuzzyjoin::stringdist_left_join(ibge.dataset, by = c('mun'), max_dist = 2,
-  distance_col = 'distance', method = 'lv')
+crackdown_fuzzy <- crackdown2 %>%
+  fuzzyjoin::stringdist_left_join(ibge_dataset, by = c('mun'), max_dist = 2,
+    distance_col = 'distance', method = 'lv'
+  )
 
 # filter down to within-state matches before manually solving the last few
 # municipalities with no match
-crackdown.fuzzy %<>%
+crackdown_fuzzy %<>%
   filter(uf.x == uf.y) %>%
   arrange(distance) %>%
   select(1:4, uf.y, mun.y, distance, everything())
 
 # solve easier conflicts
-crackdown.easy <- crackdown.fuzzy %$%
+crackdown_easy <- crackdown_fuzzy %$%
   table(operation.id) %>%
   .[. == 1] %>%
   dimnames() %>%
   unlist() %>%
-  {filter(crackdown.fuzzy, operation.id %in% .)} %>%
+  {filter(crackdown_fuzzy, operation.id %in% .)} %>%
   select(operation.id, everything()) %>%
   arrange(operation.id, distance)
 
 # # (manually) check for problems
-# crackdown.easy %>% View()
+# crackdown_easy %>% View()
 # one municipality's name was misspelled (lagoa do carmo == lagoa do carro)
 
 # solve harder conflicts
-crackdown.hard <- crackdown.fuzzy %$%
+crackdown_hard <- crackdown_fuzzy %$%
   table(operation.id) %>%
   .[. > 1] %>%
   dimnames() %>%
   unlist() %>%
-  {filter(crackdown.fuzzy, operation.id %in% .)} %>%
+  {filter(crackdown_fuzzy, operation.id %in% .)} %>%
   filter(distance == 0 | str_detect(mun.y, '^(Goiania)')) %>%
   select(operation.id, everything())
 
@@ -210,33 +197,42 @@ crackdown.hard <- crackdown.fuzzy %$%
 #      still in the crackdown2 dataset.
 
 # bind all
-crackdown2 <- rbind(crackdown.easy, crackdown.hard)
+crackdown2 <- rbind(crackdown_easy, crackdown_hard) %>%
+              mutate_at(vars(Codmundv), as.character)
 
 # create vector of municipalities
-mun.id <- ibge.dataset %>% select(Codmundv) %>%  unlist() %>%  as.vector()
+mun.id <- ibge_dataset %>%
+  select(Codmundv) %>%
+  mutate_all(as.character) %>%
+  unlist() %>%
+  as.vector()
 
 # create vector of crackdown years
-crackdown.year <- rep(2003:2018, length(mun.id))
+crackdown_year <- rep(2003:2018, length(mun.id))
 
 # expand vector of municipalities
 mun.id %<>% rep(each = length(2003:2018))
 
 # create dataset
-crackdown <- tibble(mun.id = mun.id, crackdown.year = crackdown.year)
+crackdown <- tibble(mun.id = mun.id, crackdown_year = crackdown_year)
 
 # merge both datasets
 crackdown %<>%
-  left_join(mutate(crackdown1, year = as.integer(year)),
-    by = c('mun.id' = 'cod_munic', 'crackdown.year' = 'year')) %>%
-  mutate(crackdown.outcome = operacoes, conviction.outcome = dconviction) %>%
+  left_join(
+    mutate(crackdown1, year = as.integer(year)),
+    by = c('mun.id' = 'cod_munic', 'crackdown_year' = 'year')
+  ) %>%
+  mutate(crackdown_outcome = operacoes, conviction_outcome = dconviction) %>%
   select(1:2, 8:9) %>%
-  left_join(mutate(crackdown2, ano = as.integer(ano), crackdown = 1),
-    by = c('mun.id' = 'Codmundv', 'crackdown.year' = 'ano')) %>%
-  mutate(crackdown.outcome = ifelse(!is.na(crackdown),1, crackdown.outcome)) %>%
-  mutate(crackdown.outcome = replace_na(crackdown.outcome, 0))
-
-# remove unnecessary objects
-rm(list = objects(pattern = 'name|states|crackdown(.)+|mun\\.id|rde|ibge'))
+  left_join(
+    mutate(crackdown2, ano = as.integer(ano), crackdown = 1),
+    by = c('mun.id' = 'Codmundv', 'crackdown_year' = 'ano')
+  ) %>%
+  mutate(crackdown_outcome = ifelse(!is.na(crackdown),1, crackdown_outcome)) %>%
+  mutate(crackdown_outcome = replace_na(crackdown_outcome, 0))
 
 # write to disk
-save(crackdown, file = '00_crackdown.Rda')
+save(crackdown, file = 'data_output/crackdown.Rda')
+
+# remove everything for serial sourcing
+rm(list = ls())

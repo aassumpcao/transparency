@@ -34,20 +34,19 @@ source('01_transparency_ifdmData')
 source('02_transparency_auditData.R')
 
 # wrangle ebt data
-source('00_transparency_ebtData.R')
+source('03_transparency_ebtData.R')
 
 # wrangle performance data
-source('00_transparency_performanceData.R')
+source('04_transparency_performanceData.R')
 
 # wrangle sanctions data
-source('00_transparency_sanctionsData.R')
+source('05_transparency_sanctionsData.R')
 
 # merge data across time and space creating panel of municipalities
-source('01_transparency_mergeData.R')
-
-# produce paper analysis
-source('02_transparency_analysis.R')
+source('06_transparency_analysisPrep.R')
 
 ### analysis scripts
 # these scripts, however, should be executed. they produce the paper analysis
 # with the datasets that have been wrangled/munged by the wrangling scripts.
+# produce paper analysis
+source('07_transparency_analysis.R')
