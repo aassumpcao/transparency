@@ -4,7 +4,7 @@
 # the paper's sample.
 # author: andre assumpcao
 # email:  andre.assumpcao@gmail.com
-rm(list = ls())
+
 # import statements
 library(tidyverse)
 library(magrittr)

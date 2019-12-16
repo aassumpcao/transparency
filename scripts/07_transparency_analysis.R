@@ -1,12 +1,8 @@
-################################################################################
-# active passive transparency paper
-# preliminary analysis for paper proposal
-
-# this script produces the preliminary analysis for dissertation paper three. it
-# generates descriptive statistics tables, experimental conditions tabulation,
-# and four tables containing the results for the four main outcomes.
-
-# by andre.assumpcao@gmail.com
+### active and passive transparency
+# this script produces the analysis in dissertation paper three. it
+#  generates descriptive statistics tables and plots.
+# author: andre assumpcao
+# email:  andre.assumpcao@gmail.com
 
 # import statements
 library(here)
@@ -17,62 +13,24 @@ library(stargazer)
 library(lfe)
 
 # load datasets
-load('01_transparency.Rda')
-load('01_municipalCovariates.Rda')
+load('data_output/ifdm.Rda')
+load('data_output/municipal_covariates.Rda')
+load('data_output/transparency_analysis.Rda')
 
-# define functions:
-#   calculate corrected SEs for OLS regression
-cse <- function(reg) {
-  # args:
-  #   reg: regression object
+# define functions
+# calculate robust SEs for OLS regression
+cse <- function(reg) {return(sqrt(diag(sandwich::vcovHC(reg, type = 'HC1'))))}
 
-  # returns:
-  #   matrix of robust standard errors
-
-  # body:
-  #   call to vcovHC
-  rob <- sqrt(diag(sandwich::vcovHC(reg, type = 'HC1')))
-
-  #   return matrix
-  return(rob)
-}
-
-#   calculate power for sampling strategy
-power <- function(n = 5570, alpha = .1, H0 = 0, H1 = .05, sig = 1) {
-  # args:
-  #   n:     sample size
-  #   alpha: significance level (one-sided)
-  #   h0:    mean of hypothesis zero
-  #   h1:    mean of alternative hypothesis
-  #   sig:   variance of sample distribution
-
-  # returns:
-  #   power calculation
-
-  # body:
-  #   find critical value of z
-  z_alpha <- qnorm(p = alpha, mean = 0, sd = 1, lower.tail = FALSE)
-
-  #   find the ybar_critical value
-  y_bar   <- z_alpha * (sig / sqrt(n)) + H0
-
-  #   calculate the power under h1.
-  power <- pnorm(q = y_bar, mean = H1, sd = sig / sqrt(n), lower.tail = FALSE)
-
-  #   report the power.
-  return(power)
-}
-
-################################################################################
 # merge municipal covariates on transparency data
-analysis <- transparency %>%
+### PICK UP HERE
+analysis %<>%
   mutate(mun.id = str_sub(mun.id, 1, 6)) %>%
   left_join(mutate(mun.data, mun.id = as.character(ibge.id)), by = 'mun.id') %>%
   select(-ibge.id) %>%
   filter(!is.na(ebttime.outcome) | obs.year < 2012) %>%
   mutate(double.treatment = ifelse(audit.treatment==1 & ebt.treatment==1, 1, 0))
 
-################################################################################
+###
 # define labels for descriptive statistics and regression tables
 # subset outcomes and create labels
 outcomes <- names(analysis) %>% str_subset('\\.outcome') %>% .[c(1:6, 10)]
@@ -95,7 +53,7 @@ treatment <- names(analysis) %>% str_subset('\\.treatment$')
 t.labels  <- c('Active Transparency', 'Passive Transparency',
                'Active and Passive Transparency')
 
-################################################################################
+###
 # create dir for prospectus
 dir.create('./proposal3')
 
@@ -240,7 +198,7 @@ table$Variables <- c(cov.labels[1], NA, cov.labels[2], NA, cov.labels[3], NA,
 # wrangle data, print tabulation, and manually pass values to latex
 analysis %$% table(audit.treatment, ebt.treatment)
 
-################################################################################
+###
 # graph one: plot power curve
 # clear graphical device
 dev.off()
@@ -285,7 +243,7 @@ legend(x = 3000, y = .4,  col = c('black' , 4, 'grey'), cex = .75, lwd = 2,
 # remove table to avoid confusion
 rm(list = objects(pattern = '^table$|sample|labels\\.row$|pcurv'))
 
-################################################################################
+###
 # table: frequencies for sampling strategy
 # display sample size by year
 filter(analysis, obs.year < 2012) %$%
@@ -294,7 +252,7 @@ filter(analysis, obs.year < 2012) %$%
   as.tibble() %>%
   transmute(year = obs.year, frequency = n * 100, mun.n = round(n * 916, 0))
 
-################################################################################
+###
 # table one: information outcomes
 # create formula with no covariates
 information.reg0 <- outcomes[4:5] %>%
@@ -351,7 +309,7 @@ stargazer(
   table.placement = '!htbp'
 )
 
-################################################################################
+###
 # table two: corruption outcomes
 # create formula with no covariates
 corruption.reg0 <- outcomes[c(1:3, 6:7)] %>%
@@ -411,7 +369,7 @@ stargazer(
   table.placement = '!htbp'
 )
 
-################################################################################
+###
 # table three: performance and sanction outcomes
 # create formula with no covariates
 performance.reg0 <- outcomes[6:7] %>%

@@ -42,11 +42,12 @@ source('04_transparency_performanceData.R')
 # wrangle sanctions data
 source('05_transparency_sanctionsData.R')
 
-# merge data across time and space creating panel of municipalities
-source('06_transparency_analysisPrep.R')
-
 ### analysis scripts
 # these scripts, however, should be executed. they produce the paper analysis
 # with the datasets that have been wrangled/munged by the wrangling scripts.
+
+# merge data across time and space creating panel of municipalities
+source('06_transparency_analysisPrep.R')
+
 # produce paper analysis
 source('07_transparency_analysis.R')
