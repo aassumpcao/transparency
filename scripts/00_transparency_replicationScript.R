@@ -13,6 +13,7 @@
 # import statements (== packages required to run all scripts in R)
 if (!require(AER))       {install.packages('AER')}
 if (!require(extrafont)) {install.packages('extrafont')}
+if (!require(fuzzyjoin)) {install.packages('fuzzyjoin')}
 if (!require(lfe))       {install.packages('lfe')}
 if (!require(magrittr))  {install.packages('magrittr')}
 if (!require(stargazer)) {install.packages('stargazer')}

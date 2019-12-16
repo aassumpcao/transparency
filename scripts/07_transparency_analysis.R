@@ -3,9 +3,8 @@
 #  generates descriptive statistics tables and plots.
 # author: andre assumpcao
 # email:  andre.assumpcao@gmail.com
-
+rm(list = ls())
 # import statements
-library(here)
 library(tidyverse)
 library(magrittr)
 library(AER)
@@ -16,58 +15,130 @@ library(lfe)
 load('data_output/ifdm.Rda')
 load('data_output/municipal_covariates.Rda')
 load('data_output/transparency_analysis.Rda')
+load('data_output/control_pool.Rda')
 
 # define functions
 # calculate robust SEs for OLS regression
 cse <- function(reg) {return(sqrt(diag(sandwich::vcovHC(reg, type = 'HC1'))))}
 
+# calculate power for sampling strategy
+power <- function(n = 5570, alpha = .1, H0 = 0, H1 = .05, sig = 1) {
+  # args:
+  #   n:     sample size
+  #   alpha: significance level (one-sided)
+  #   H0:    mean of hypothesis zero
+  #   H1:    mean of alternative hypothesis
+  #   sig:   variance of sample distribution
+
+  # returns:
+  #   power calculation
+
+  # body:
+  #   find critical value of z
+  z_alpha <- qnorm(p = alpha, mean = 0, sd = 1, lower.tail = FALSE)
+
+  #   find the ybar_critical value
+  y_bar <- z_alpha * (sig / sqrt(n)) + H0
+
+  #   calculate the power under h1.
+  power <- pnorm(q = y_bar, mean = H1, sd = sig / sqrt(n), lower.tail = FALSE)
+
+  #   report the power.
+  return(power)
+}
+
+# change variable names in municipal dataset
+names(municipal_data) <- str_replace_all(names(municipal_data), '\\.', '_')
+
 # merge municipal covariates on transparency data
-### PICK UP HERE
 analysis %<>%
-  mutate(mun.id = str_sub(mun.id, 1, 6)) %>%
-  left_join(mutate(mun.data, mun.id = as.character(ibge.id)), by = 'mun.id') %>%
-  select(-ibge.id) %>%
-  filter(!is.na(ebttime.outcome) | obs.year < 2012) %>%
-  mutate(double.treatment = ifelse(audit.treatment==1 & ebt.treatment==1, 1, 0))
+  left_join(mutate(municipal_data, mun_id = as.character(ibge_id)),'mun_id') %>%
+  select(-ibge_id) %>%
+  mutate(double_treatment = ifelse(audit_treatment==1 & ebt_treatment==1, 1, 0))
 
 ###
 # define labels for descriptive statistics and regression tables
-# subset outcomes and create labels
-outcomes <- names(analysis) %>% str_subset('\\.outcome') %>% .[c(1:6, 10)]
-o.labels <- c('Acts of Mismanagement (ln)', 'Acts of Corruption (ln)',
-              'Number of Irregularities (ln)', 'FOI Request (time)',
-              'FOI Request (accuracy)', 'MUDP Adoption', 'Official Sanctioned')
+# subset outcomes and create labels for each outcome
+outcomes   <- names(analysis) %>% .[{which(str_detect(., '_outcome'))}]
+out_labels <- c('MUDP Adoption', 'Municipal Development Index (MDI)',
+  'FOI Request (time)', 'FOI Request (accuracy)', 'Acts of Mismanagement (ln)',
+  'Acts of Corruption (ln)', 'Number of Irregularities (ln)','Sanctions Imposed'
+)
 
 # subset municipal covariates and create labels
-covariates <- names(analysis) %>% str_subset('mun\\.(?!id$)')
-cov.labels <- c('Share Urban (Pop.)', 'Share Female (Pop.)', 'Illiteracy Rate',
-                'Income Per Capita (ln)', 'Gini Coefficient',
-                'Human Development Index','Share Poor (Pop.)',
-                'Presence of AM Radio', 'Presence of Health Council',
-                'Presence of Education Council', 'Seat of Judiciary Branch')
-
-# subset political covariates and create labels
+covariates <- names(analysis) %>% .[{which(str_detect(., 'mun_(?!id$)'))}]
+cov_labels <- c(
+  'Share Urban (Pop.)', 'Share Female (Pop.)', 'Share Illiterate',
+  'Income Per Capita (ln)', 'Gini Coefficient', 'Human Development Index',
+  'Share Poor (Pop.)', 'Presence of AM Radio', 'Presence of Health Council',
+  'Presence of Education Council', 'Seat of Judiciary Branch'
+)
 
 # subset treatment assignment indicators and create labels
-treatment <- names(analysis) %>% str_subset('\\.treatment$')
-t.labels  <- c('Active Transparency', 'Passive Transparency',
-               'Active and Passive Transparency')
-
-###
-# create dir for prospectus
-dir.create('./proposal3')
+treatment     <- names(analysis) %>% .[{which(str_detect(., 'treatment$'))}]
+treat_labels  <- c(
+  'Active Transparency','Passive Transparency','Active and Passive Transparency'
+)
 
 # make last changes to data before analysis
 # first, i log income and corruption outcomes (as in avis, ferraz, finan (2018))
 analysis %<>%
-  mutate_at(vars(matches('mism|orr|count|inc')), funs(ifelse(. == 0, 1, .))) %>%
-  mutate_at(vars(matches('mism|orr|count|inc')), log) %>%
-  mutate_at(vars(matches('\\.id$')), as.integer)
+  mutate_at(vars(matches('mism|orr|count|inc')), as.integer)%>%
+  mutate_at(vars(matches('mism|orr|count|inc')), list(~ifelse(. == 0, 1, .)))%>%
+  mutate_at(vars(matches('mism|orr|count|inc')), log)
 
-# subset the dataset for each group
-corrup.ds <- filter(analysis, !is.na(audit.id))
-info.ds   <- filter(analysis, obs.year > 2011)
-perf.ds   <- filter(analysis, !is.na(double.treatment))
+# create row indicator for defining control group below
+analysis %<>% mutate(obs_id = row_number())
+
+# find the number of unique observations in each group for table
+outcome <- c('ebtquality_outcome')
+dataset <- filter_at(analysis, vars(outcome), all_vars(!is.na(.)))
+
+dataset <- list(
+  dataset %$% table(double_treatment),
+  analysis %$% table(ebttime_outcome, !is.na(audit_id))
+  filter(dataset, double_treatment == 0 & audit_treatment == 1),
+  filter(dataset, double_treatment == 0 & obs_year > 2011),
+  filter_at(dataset, vars(matches('treat')), all_vars(. == 0))
+)
+
+vector <- lapply(dataset, function(x){
+            {c(mun_unique = length(unique(x$mun_id)), mun_total = nrow(x))}
+          })
+
+names(vector) <- c('double', 'active', 'passive', 'control');vector
+
+
+
+
+
+
+###### CAGOU TUDO ####
+
+
+# double transparency
+double  <- analysis %>%
+           filter(double_treatment == 1) %>%
+           filter_at(vars(mdp_outcome, ifdm_outcome), all_vars(!is.na(.))) %>%
+           {c(mun_unique = length(unique(.$mun_id)), mun_total = nrow(.))}
+
+# active transparency
+active  <- analysis %>%
+           filter(!is.na(audit_id)) %>%
+           filter_at(vars(mdp_outcome, ifdm_outcome), all_vars(!is.na(.))) %>%
+           {c(mun_unique = length(unique(.$mun_id)), mun_total = nrow(.))}
+
+# passive transparency
+passive <- analysis %>%
+           filter(obs_year > 2011 & is.na(audit_id) & double_treatment == 0) %>%
+           filter_at(vars(mdp_outcome, ifdm_outcome), all_vars(!is.na(.))) %>%
+           {c(mun_unique = length(unique(.$mun_id)), mun_total = nrow(.))}
+
+# control
+control <- analysis %>%
+           filter(obs_year < 2012 & is.na(audit_id)) %>%
+           filter_at(vars(mdp_outcome, ifdm_outcome), all_vars(!is.na(.))) %>%
+           {c(mun_unique = length(unique(.$mun_id)), mun_total = nrow(.))}
 
 ### produce means, difference in means and p.values for all variables so that i
 # print the descriptive statistics table
