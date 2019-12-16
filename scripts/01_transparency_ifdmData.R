@@ -64,7 +64,7 @@ if (all(is.na(urls$href))) {
     mutate_at(vars(score, rank), list(~as.character(as.numeric(.))))
 
   # save to R dataset
-  save(ifdm, file = 'data_output/ifdm.Rda')
+  save(ifdm, file = 'data_output/01_ifdm.Rda')
 }
 
 # remove everything for serial sourcing

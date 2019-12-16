@@ -109,6 +109,8 @@ vector <- lapply(dataset, function(x){
 names(vector) <- c('double', 'active', 'passive', 'control');vector
 
 
+# calculate power when sampling 650 observations from control group
+power(n = 2953 + 1379, alpha = .05)
 
 
 

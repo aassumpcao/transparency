@@ -63,7 +63,7 @@ rde %<>% filter(!is.na(Demanda))
 #   {mapply(download.file, ., destfile = pdf.names)}
 
 # save rde to file
-save(rde, file = 'data_output/rde.Rda')
+save(rde, file = 'data_output/05_rde.Rda')
 
 # wrangle federal policy and CGU crackdown operations dataset
 # import from avis, ferraz, and finan (2018) @ the jpe (2003-2015)
@@ -232,7 +232,7 @@ crackdown %<>%
   mutate(crackdown_outcome = replace_na(crackdown_outcome, 0))
 
 # write to disk
-save(crackdown, file = 'data_output/crackdown.Rda')
+save(crackdown, file = 'data_output/06_crackdown.Rda')
 
 # remove everything for serial sourcing
 rm(list = ls())

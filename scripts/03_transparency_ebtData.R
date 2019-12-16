@@ -30,7 +30,7 @@ ebt <- brasil_transparente %>%
   mutate_all(as.character)
 
 # write to disk
-save(ebt, file = 'data_output/ebt.Rda')
+save(ebt, file = 'data_output/03_ebt.Rda')
 
 # remove everything for serial sourcing
 rm(list = ls())

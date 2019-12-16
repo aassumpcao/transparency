@@ -48,7 +48,7 @@ source('05_transparency_sanctionsData.R')
 # with the datasets that have been wrangled/munged by the wrangling scripts.
 
 # merge data across time and space creating panel of municipalities
-source('06_transparency_analysisPrep.R')
+source('10_transparency_analysisPrep.R')
 
 # produce paper analysis
-source('07_transparency_analysis.R')
+source('11_transparency_analysis.R')

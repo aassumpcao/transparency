@@ -21,31 +21,31 @@ load('data_output/transparency_analysis.Rda')
 # calculate robust SEs for OLS regression
 cse <- function(reg) {return(sqrt(diag(sandwich::vcovHC(reg, type = 'HC1'))))}
 
-# #   calculate power for sampling strategy
-# power <- function(n = 5570, alpha = .1, H0 = 0, H1 = .05, sig = 1) {
-#   # args:
-#   #   n:     sample size
-#   #   alpha: significance level (one-sided)
-#   #   h0:    mean of hypothesis zero
-#   #   h1:    mean of alternative hypothesis
-#   #   sig:   variance of sample distribution
+# calculate power for sampling strategy
+power <- function(n = 5570, alpha = .1, H0 = 0, H1 = .05, sig = 1) {
+  # args:
+  #   n:     sample size
+  #   alpha: significance level (one-sided)
+  #   h0:    mean of hypothesis zero
+  #   h1:    mean of alternative hypothesis
+  #   sig:   variance of sample distribution
 
-#   # returns:
-#   #   power calculation
+  # returns:
+  #   power calculation
 
-#   # body:
-#   #   find critical value of z
-#   z_alpha <- qnorm(p = alpha, mean = 0, sd = 1, lower.tail = FALSE)
+  # body:
+  #   find critical value of z
+  z_alpha <- qnorm(p = alpha, mean = 0, sd = 1, lower.tail = FALSE)
 
-#   #   find the ybar_critical value
-#   y_bar   <- z_alpha * (sig / sqrt(n)) + H0
+  #   find the ybar_critical value
+  y_bar   <- z_alpha * (sig / sqrt(n)) + H0
 
-#   #   calculate the power under h1.
-#   power <- pnorm(q = y_bar, mean = H1, sd = sig / sqrt(n), lower.tail = FALSE)
+  #   calculate the power under h1.
+  power <- pnorm(q = y_bar, mean = H1, sd = sig / sqrt(n), lower.tail = FALSE)
 
-#   #   report the power.
-#   return(power)
-# }
+  #   report the power.
+  return(power)
+}
 
 # merge municipal covariates on transparency data
 ### PICK UP HERE
@@ -235,7 +235,7 @@ pcurv.05 <- lapply(X = 1:5570, FUN = power, alpha = .025)
 pcurv.01 <- lapply(X = 1:5570, FUN = power, alpha = .005)
 
 # find 90% power using two-sided .05 alpha (.025 on each side)
-power(n = 4203)
+power(n = 2953 + 2500, alpha = .01)
 
 # define graphical file and font family argument
 # pdf(file = './proposal3/power.pdf')

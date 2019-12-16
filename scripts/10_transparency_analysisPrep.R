@@ -4,7 +4,7 @@
 # the paper's sample.
 # author: andre assumpcao
 # email:  andre.assumpcao@gmail.com
-rm(list = ls())
+
 # import statements
 library(fuzzyjoin)
 library(magrittr)
@@ -14,33 +14,8 @@ library(tidyverse)
 set.seed(20151219)
 
 # load datasets
-for (file in list.files('data_output', full.names = TRUE)) {load(file)}
-
-# define function
-# calculate power for sampling strategy
-power <- function(n = 5570, alpha = .1, H0 = 0, H1 = .05, sig = 1) {
-  # args:
-  #   n:     sample size
-  #   alpha: significance level (one-sided)
-  #   H0:    mean of hypothesis zero
-  #   H1:    mean of alternative hypothesis
-  #   sig:   variance of sample distribution
-
-  # returns:
-  #   power calculation
-
-  # body:
-  #   find critical value of z
-  z_alpha <- qnorm(p = alpha, mean = 0, sd = 1, lower.tail = FALSE)
-
-  #   find the ybar_critical value
-  y_bar <- z_alpha * (sig / sqrt(n)) + H0
-
-  #   calculate the power under h1.
-  power <- pnorm(q = y_bar, mean = H1, sd = sig / sqrt(n), lower.tail = FALSE)
-
-  #   report the power.
-  return(power)
+for (file in list.files('data_output', pattern = '^0', full.names = TRUE)) {
+  load(file)
 }
 
 # wrangle each dataset separately. the goal is to create data in panel format
@@ -139,6 +114,12 @@ municipalities <- list(crackdown, rde, munic, ifdm, ebt, audit) %>%
 
 # create (empty) analysis dataset
 analysis <- tibble(mun_id = municipalities, obs_year = as.character(years))
+matchkey <- c('mun_id',
+              'obs_year' = 'crackdown_year',
+              'obs_year' = 'rde_year',
+              'obs_year' = 'mdp_year',
+              'obs_year' = 'ifdm_year'
+            )
 
 # merge all performance data onto the same dataset
 analysis %<>%
@@ -164,71 +145,24 @@ transparency <- ebt %>%
     active_treatment  = ifelse(is.na(audit_id), 0, 1),
     passive_treatment = ifelse(audit_year > 2012 | is.na(audit_year), 1, 0)
   ) %>%
-  mutate_all(as.character)
+  mutate(obs_year = ifelse(!is.na(audit_year), audit_year, ebt_year)) %>%
+  mutate_all(as.character) %>%
+  select(
+    matches('id'), matches('year'), matches('treat'), matches('ebt'),
+    matches('audit'), matches('outcome')
+  )
 
 # create list of unique municipalities for control group
 control_pool <- setdiff(unique(analysis$mun_id), unique(transparency$mun_id))
 
 # extract outcomes for control group. i sample 900 data
 control_pool <- analysis %>%
-  filter(mun_id %in% control & obs_year < 2012) %>%
+  filter(mun_id %in% control_pool & obs_year < 2012) %>%
   filter_at(vars(matches('outcome')), all_vars(!is.na(.)))
 
- # merge onto ebt information with inexact date matching. we find the closest
-# # performance date with respect to the ebt date
-# passive_transparency <- analysis %>%
-#   full_join(ebt, 'mun_id') %>%
-#   filter_at(vars(matches('^e(.)*come')), all_vars(!is.na(.))) %>%
-#   filter(
-#     (obs_year %in% 2013:2015 & ebt_year == 2015) |
-#     (obs_year == 2016 & ebt_year == 2016) |
-#     (obs_year >= 2017 & ebt_year == 2017)
-#   ) %>%
-#   distinct() %>%
-#   rename(passive_year = obs_year) %>%
-#   select(-ebt_year)
-# ebt$ebt_year %>% table()
-# # merge onto audit information with inexact date matching. we find the closest
-# # performance date with respect to the audit date
-# active_transparency <- analysis %>%
-#   full_join(audit, 'mun_id') %>%
-#   filter_at(vars(matches('^(misma|corru|count)')), all_vars(!is.na(.))) %>%
-#   mutate(
-#     ifdm_outcome = as.double(ifdm_outcome) %>%
-#                    {ifelse(is.na(.), median(., na.rm = TRUE), .)}
-#   ) %>%
-#   filter(!is.na(mdp_outcome)) %>%
-#   filter(
-#     (obs_year == 2005 & audit_year == 2006) |
-#     (obs_year == 2008 & audit_year == 2007) |
-#     (obs_year == 2008 & audit_year == 2008) |
-#     (obs_year == 2009 & audit_year == 2009) |
-#     (obs_year == 2009 & audit_year == 2010) |
-#     (obs_year == 2012 & audit_year == 2011) |
-#     (obs_year == 2012 & audit_year == 2012) |
-#     (obs_year == 2013 & audit_year == 2013) |
-#     (obs_year == 2013 & audit_year == 2014) |
-#     (obs_year == 2015 & audit_year == 2015)
-#   ) %>%
-#   rename(active_year = obs_year) %>%
-#   select(-audit_year)
-
-# full_join(passive_transparency, active_transparency, 'mun_id') %$%
-#   table(is.na(active_year), is.na(passive_year))
-
-
-# replace crackdown outcome, edit treatment variable, and drop empty rows
-analysis %<>%
-  mutate(
-    audit_treatment = ifelse(is.na(audit_id), 0, 1),
-    ebt_treatment   = ifelse(obs_year < 2012, 0, 1)
-  ) %>%
-  mutate_all(as.character) %>%
-  select(matches('_id'), obs_year, matches('_tre|amount'), matches('_out'))
-
 # write to disk
-save(transparency, file = 'data_output/transparency_analysis.Rda')
-save(control_pool, file = 'data_output/control_pool.Rda')
+save(transparency, file = 'data_output/10_transparency_analysis.Rda')
+save(control_pool, file = 'data_output/10_control_pool.Rda')
 
 # remove everything for serial sourcing
 rm(list = ls())
