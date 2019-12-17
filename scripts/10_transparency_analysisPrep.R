@@ -122,7 +122,7 @@ matchkey <- c('mun_id',
             )
 
 # merge all performance data onto the same dataset
-analysis %<>%
+performance <- analysis %>%
   full_join(crackdown, by = matchkey[1:2]) %>%
   full_join(rde, by = matchkey[c(1,3)]) %>%
   full_join(munic, by = matchkey[c(1,4)]) %>%
@@ -153,16 +153,17 @@ transparency <- ebt %>%
   )
 
 # create list of unique municipalities for control group
-control_pool <- setdiff(unique(analysis$mun_id), unique(transparency$mun_id))
+control_pool <- setdiff(unique(performance$mun_id), unique(transparency$mun_id))
 
 # extract outcomes for control group. i sample 900 data
-control_pool <- analysis %>%
+control_pool <- performance %>%
   filter(mun_id %in% control_pool & obs_year < 2012) %>%
   filter_at(vars(matches('outcome')), all_vars(!is.na(.)))
 
 # write to disk
-save(transparency, file = 'data_output/10_transparency_analysis.Rda')
 save(control_pool, file = 'data_output/10_control_pool.Rda')
+save(performance,  file = 'data_output/10_performance.Rda')
+save(transparency, file = 'data_output/10_transparency.Rda')
 
 # remove everything for serial sourcing
 rm(list = ls())

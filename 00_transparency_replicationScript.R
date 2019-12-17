@@ -29,26 +29,26 @@ rstudioapi::openProject('2019 Active and Passive Transparency.Rproj')
 #  purposes if you are interested in a particular step taken.
 
 # wrangle ifdm (performance) data
-source('01_transparency_ifdmData')
+source('scripts/01_transparency_ifdmData')
 
 # wrangle audit data
-source('02_transparency_auditData.R')
+source('scripts/02_transparency_auditData.R')
 
 # wrangle ebt data
-source('03_transparency_ebtData.R')
+source('scripts/03_transparency_ebtData.R')
 
 # wrangle performance data
-source('04_transparency_performanceData.R')
+source('scripts/04_transparency_performanceData.R')
 
 # wrangle sanctions data
-source('05_transparency_sanctionsData.R')
+source('scripts/05_transparency_sanctionsData.R')
 
 ### analysis scripts
 # these scripts, however, should be executed. they produce the paper analysis
 # with the datasets that have been wrangled/munged by the wrangling scripts.
 
 # merge data across time and space creating panel of municipalities
-source('10_transparency_analysisPrep.R')
+source('scripts/10_transparency_analysisPrep.R')
 
 # produce paper analysis
-source('11_transparency_analysis.R')
+source('scripts/11_transparency_analysis.R')

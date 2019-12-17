@@ -12,10 +12,14 @@ library(stargazer)
 library(lfe)
 
 # load datasets
-load('data_output/ifdm.Rda')
-load('data_output/municipal_covariates.Rda')
-load('data_output/transparency_analysis.Rda')
-load('data_output/control_pool.Rda')
+load('data_output/01_ifdm.Rda')
+load('data_output/10_control_pool.Rda')
+load('data_output/10_municipal_covariates.Rda')
+load('data_output/10_performance.Rda')
+load('data_output/10_transparency.Rda')
+
+# set seed for control group sampling
+set.seed(20151219)
 
 # define functions
 # calculate robust SEs for OLS regression
@@ -47,22 +51,86 @@ power <- function(n = 5570, alpha = .1, H0 = 0, H1 = .05, sig = 1) {
   return(power)
 }
 
+# define function to produce sample size for latex tables
+produce_samples <- function(group = 1, dataset = analysis) {
+  # define regex group
+  if (group == 1)        {regex_group <- 'mdp|ifdm|sanction'
+  } else if (group == 2) {regex_group <- 'corru|mism|count'
+  } else                 {regex_group <- '^ebt.*outcome$'
+  }
+
+  # define full sample size
+  full_obs <- analysis %>%
+    filter_at(vars(matches(regex_group)), all_vars(!is.na(.))) %$%
+    table(active_treatment, passive_treatment) %>%
+    unname()
+
+  # define unique observations sample size
+  unique_obs <- analysis %>%
+    group_by(mun_id) %>%
+    slice(1) %>%
+    filter_at(vars(matches(regex_group)), all_vars(!is.na(.))) %$%
+    table(active_treatment, passive_treatment) %>%
+    unname()
+
+  # return call for final object
+  return(list(full_obs = full_obs, unique_obs = unique_obs))
+}
+
 # change variable names in municipal dataset
 names(municipal_data) <- str_replace_all(names(municipal_data), '\\.', '_')
+
+# sample control municipalities from donor pool of ~7,500 observations. these
+# performance measures come from pre-2012 and municipalities that were never
+# audited by cgu
+control_pool %<>%
+  group_by(obs_year) %>%
+  sample_n(650, replace = TRUE) %>%
+  ungroup()
+
+# check statistical power for the final sample, based on the number of unique
+# municipalities in our sample
+n <- length(unique(transparency$mun_id)) + length(unique(control_pool$mun_id))
+
+# we are aiming for 90% power
+power(n, alpha = .025)
+
+# fill in the missing values for mdp performance in years where municipal survey
+# was not conducted
+performance %<>%
+  group_by(mun_id) %>%
+  fill(mdp_outcome, .direction = 'updown') %>%
+  fill(ifdm_outcome, .direction = 'down') %>%
+  filter(obs_year > 2005 & obs_year < 2018) %>%
+  ungroup()
+
+# find performance measures in performance dataset for treated municipalities
+transparency %<>%
+  left_join(performance, by = c('mun_id', 'obs_year')) %>%
+  filter_at(vars(matches('mdp|ifdm|sanction')), all_vars(!is.na(.)))
+
+# match to control pool
+analysis <- bind_rows(control_pool, transparency) %>%
+            replace_na(list(active_treatment = 0, passive_treatment = 0)) %>%
+            select(-audit_treatment, -ebt_treatment)
 
 # merge municipal covariates on transparency data
 analysis %<>%
   left_join(mutate(municipal_data, mun_id = as.character(ibge_id)),'mun_id') %>%
   select(-ibge_id) %>%
-  mutate(double_treatment = ifelse(audit_treatment==1 & ebt_treatment==1, 1, 0))
+  mutate(
+    double_treatment = ifelse(
+      active_treatment == 1 & passive_treatment == 1, 1, 0
+    )
+  )
 
-###
 # define labels for descriptive statistics and regression tables
 # subset outcomes and create labels for each outcome
 outcomes   <- names(analysis) %>% .[{which(str_detect(., '_outcome'))}]
 out_labels <- c('MUDP Adoption', 'Municipal Development Index (MDI)',
-  'FOI Request (time)', 'FOI Request (accuracy)', 'Acts of Mismanagement (ln)',
-  'Acts of Corruption (ln)', 'Number of Irregularities (ln)','Sanctions Imposed'
+  'Sanctions Imposed', 'FOI Request (time)', 'FOI Request (accuracy)',
+  'Acts of Mismanagement (ln)', 'Acts of Corruption (ln)',
+  'Number of Irregularities (ln)'
 )
 
 # subset municipal covariates and create labels
@@ -87,12 +155,38 @@ analysis %<>%
   mutate_at(vars(matches('mism|orr|count|inc')), list(~ifelse(. == 0, 1, .)))%>%
   mutate_at(vars(matches('mism|orr|count|inc')), log)
 
-# create row indicator for defining control group below
-analysis %<>% mutate(obs_id = row_number())
+# use custom function to extract sample sizes
+n_performance <- produce_samples(1)
+n_corruption  <- produce_samples(2)
+n_information <- produce_samples(3)
+
+# list full obs
+lapply(list(n_performance, n_corruption, n_information), '[[', 1)
+
+### manually include in tables
+
+# return call for final object
+return(list(full_obs = full_obs, unique_obs = unique_obs))
+
+# check the total number of observations for performance experiment
+analysis %>%
+  filter_at(vars(matches('mdp|ifdm|sanction')), all_vars(!is.na(.))) %$%
+  table(active_treatment, passive_treatment)
+
+# check the total number of observations for corruption experiment
+analysis %>%
+  filter_at(vars(matches('corru|mism|count')), all_vars(!is.na(.))) %$%
+  table(active_treatment, passive_treatment)
+
+# check the total number of observations for information experiment
+analysis %>%
+  filter_at(vars(matches('^ebt.*outcome$')), all_vars(!is.na(.))) %$%
+  table(active_treatment, passive_treatment)
 
 # find the number of unique observations in each group for table
 outcome <- c('ebtquality_outcome')
 dataset <- filter_at(analysis, vars(outcome), all_vars(!is.na(.)))
+
 
 dataset <- list(
   dataset %$% table(double_treatment),
@@ -107,12 +201,6 @@ vector <- lapply(dataset, function(x){
           })
 
 names(vector) <- c('double', 'active', 'passive', 'control');vector
-
-
-# calculate power when sampling 650 observations from control group
-power(n = 2953 + 1379, alpha = .05)
-
-
 
 
 ###### CAGOU TUDO ####
