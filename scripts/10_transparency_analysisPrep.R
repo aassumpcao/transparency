@@ -143,7 +143,7 @@ transparency <- ebt %>%
   full_join(audit, 'mun_id') %>%
   mutate(
     active_treatment  = ifelse(is.na(audit_id), 0, 1),
-    passive_treatment = ifelse(audit_year > 2012 | is.na(audit_year), 1, 0)
+    passive_treatment = ifelse(audit_year > 2011 | is.na(audit_year), 1, 0)
   ) %>%
   mutate(obs_year = ifelse(!is.na(audit_year), audit_year, ebt_year)) %>%
   mutate_all(as.character) %>%

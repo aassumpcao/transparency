@@ -51,32 +51,6 @@ power <- function(n = 5570, alpha = .1, H0 = 0, H1 = .05, sig = 1) {
   return(power)
 }
 
-# define function to produce sample size for latex tables
-produce_samples <- function(group = 1, dataset = analysis) {
-  # define regex group
-  if (group == 1)        {regex_group <- 'mdp|ifdm|sanction'
-  } else if (group == 2) {regex_group <- 'corru|mism|count'
-  } else                 {regex_group <- '^ebt.*outcome$'
-  }
-
-  # define full sample size
-  full_obs <- analysis %>%
-    filter_at(vars(matches(regex_group)), all_vars(!is.na(.))) %$%
-    table(active_treatment, passive_treatment) %>%
-    unname()
-
-  # define unique observations sample size
-  unique_obs <- analysis %>%
-    group_by(mun_id) %>%
-    slice(1) %>%
-    filter_at(vars(matches(regex_group)), all_vars(!is.na(.))) %$%
-    table(active_treatment, passive_treatment) %>%
-    unname()
-
-  # return call for final object
-  return(list(full_obs = full_obs, unique_obs = unique_obs))
-}
-
 # change variable names in municipal dataset
 names(municipal_data) <- str_replace_all(names(municipal_data), '\\.', '_')
 
@@ -112,7 +86,8 @@ transparency %<>%
 # match to control pool
 analysis <- bind_rows(control_pool, transparency) %>%
             replace_na(list(active_treatment = 0, passive_treatment = 0)) %>%
-            select(-audit_treatment, -ebt_treatment)
+            select(-audit_treatment, -ebt_treatment) %>%
+            mutate(state_id = str_sub(mun_id, 1, 2))
 
 # merge municipal covariates on transparency data
 analysis %<>%
@@ -122,7 +97,8 @@ analysis %<>%
     double_treatment = ifelse(
       active_treatment == 1 & passive_treatment == 1, 1, 0
     )
-  )
+  ) %>%
+  mutate_at(vars(matches('^ebt.*outcome')), list(~ifelse(is.na(.), 0, .)))
 
 # define labels for descriptive statistics and regression tables
 # subset outcomes and create labels for each outcome
@@ -134,11 +110,11 @@ out_labels <- c('MUDP Adoption', 'Municipal Development Index (MDI)',
 )
 
 # subset municipal covariates and create labels
-covariates <- names(analysis) %>% .[{which(str_detect(., 'mun_(?!id$)'))}]
+covariates <- names(analysis) %>% .[{which(str_detect(., 'mun_(?!id|idhm$)'))}]
 cov_labels <- c(
   'Share Urban (Pop.)', 'Share Female (Pop.)', 'Share Illiterate',
-  'Income Per Capita (ln)', 'Gini Coefficient', 'Human Development Index',
-  'Share Poor (Pop.)', 'Presence of AM Radio', 'Presence of Health Council',
+  'Income Per Capita (ln)', 'Gini Coefficient', 'Share Poor (Pop.)',
+  'Presence of AM Radio', 'Presence of Health Council',
   'Presence of Education Council', 'Seat of Judiciary Branch'
 )
 
@@ -155,125 +131,158 @@ analysis %<>%
   mutate_at(vars(matches('mism|orr|count|inc')), list(~ifelse(. == 0, 1, .)))%>%
   mutate_at(vars(matches('mism|orr|count|inc')), log)
 
+# define function to produce sample size for latex tables
+produce_samples <- function(group = 1, dataset = analysis) {
+  # define regex group
+  if (group == 1)      {regex_group <- 'mdp|ifdm|sanction'}
+  else if (group == 2) {regex_group <- 'corru|mism|count'}
+  else                 {regex_group <- '^ebt.*outcome$'}
+
+  # define full sample size
+  full_obs <- analysis %>%
+    filter_at(vars(matches(regex_group)), all_vars(!is.na(.))) %$%
+    table(active_treatment, passive_treatment) %>%
+    unname()
+
+  # define unique observations sample size
+  unique_obs <- analysis %>%
+    group_by(mun_id) %>%
+    slice(1) %>%
+    filter_at(vars(matches(regex_group)), all_vars(!is.na(.))) %$%
+    table(active_treatment, passive_treatment) %>%
+    unname()
+
+  # return call for final object
+  return(list(full_obs = full_obs, unique_obs = unique_obs))
+}
+
 # use custom function to extract sample sizes
 n_performance <- produce_samples(1)
 n_corruption  <- produce_samples(2)
 n_information <- produce_samples(3)
 
-# list full obs
+# list full and unique obs
 lapply(list(n_performance, n_corruption, n_information), '[[', 1)
+lapply(list(n_performance, n_corruption, n_information), '[[', 2)
 
-### manually include in tables
+# table: hypothesis in experimental design sample size
+### manually include in table
 
-# return call for final object
-return(list(full_obs = full_obs, unique_obs = unique_obs))
-
-# check the total number of observations for performance experiment
-analysis %>%
-  filter_at(vars(matches('mdp|ifdm|sanction')), all_vars(!is.na(.))) %$%
-  table(active_treatment, passive_treatment)
-
-# check the total number of observations for corruption experiment
-analysis %>%
-  filter_at(vars(matches('corru|mism|count')), all_vars(!is.na(.))) %$%
-  table(active_treatment, passive_treatment)
-
-# check the total number of observations for information experiment
-analysis %>%
-  filter_at(vars(matches('^ebt.*outcome$')), all_vars(!is.na(.))) %$%
-  table(active_treatment, passive_treatment)
-
-# find the number of unique observations in each group for table
-outcome <- c('ebtquality_outcome')
-dataset <- filter_at(analysis, vars(outcome), all_vars(!is.na(.)))
-
-
-dataset <- list(
-  dataset %$% table(double_treatment),
-  analysis %$% table(ebttime_outcome, !is.na(audit_id))
-  filter(dataset, double_treatment == 0 & audit_treatment == 1),
-  filter(dataset, double_treatment == 0 & obs_year > 2011),
-  filter_at(dataset, vars(matches('treat')), all_vars(. == 0))
-)
-
-vector <- lapply(dataset, function(x){
-            {c(mun_unique = length(unique(x$mun_id)), mun_total = nrow(x))}
-          })
-
-names(vector) <- c('double', 'active', 'passive', 'control');vector
-
-
-###### CAGOU TUDO ####
-
-
-# double transparency
-double  <- analysis %>%
-           filter(double_treatment == 1) %>%
-           filter_at(vars(mdp_outcome, ifdm_outcome), all_vars(!is.na(.))) %>%
-           {c(mun_unique = length(unique(.$mun_id)), mun_total = nrow(.))}
-
-# active transparency
-active  <- analysis %>%
-           filter(!is.na(audit_id)) %>%
-           filter_at(vars(mdp_outcome, ifdm_outcome), all_vars(!is.na(.))) %>%
-           {c(mun_unique = length(unique(.$mun_id)), mun_total = nrow(.))}
-
-# passive transparency
-passive <- analysis %>%
-           filter(obs_year > 2011 & is.na(audit_id) & double_treatment == 0) %>%
-           filter_at(vars(mdp_outcome, ifdm_outcome), all_vars(!is.na(.))) %>%
-           {c(mun_unique = length(unique(.$mun_id)), mun_total = nrow(.))}
-
-# control
-control <- analysis %>%
-           filter(obs_year < 2012 & is.na(audit_id)) %>%
-           filter_at(vars(mdp_outcome, ifdm_outcome), all_vars(!is.na(.))) %>%
-           {c(mun_unique = length(unique(.$mun_id)), mun_total = nrow(.))}
-
-### produce means, difference in means and p.values for all variables so that i
+# table: summary statistics
+# produce means, difference in means and p.values for all variables so that i
 # print the descriptive statistics table
 column1 <- vector()
 column2 <- vector()
 column3 <- vector()
+column4 <- vector()
+
+# create function to produce means across all covariates
+calculate_means <- function(active = 1, passive = 1) {
+  # filter dataset to contain municipal level data
+  dataset <- analysis %>%
+    filter(active_treatment == active & passive_treatment == passive) %>%
+    group_by(mun_id)
+
+  # produce vector of means
+  dataset %>%
+    select(mun_id, covariates) %>%
+    summarize_all(mean, na.rm = TRUE) %>%
+    ungroup() %>%
+    select(-mun_id) %>%
+    as.list() %>%
+    lapply(mean, na.rm = TRUE) %>%
+    lapply(round, 3) %>%
+    unlist() %>%
+    c(n = paste0('[', nrow(dataset),';', nrow(attr(dataset, 'group')),']')) %>%
+    return()
+}
+
+# calculate means for all covariates and all groups
+actpass <- calculate_means(active = 1, passive = 1)
+active  <- calculate_means(active = 1, passive = 0)
+passive <- calculate_means(active = 0, passive = 1)
+control <- calculate_means(active = 0, passive = 0)
+
+# create function to regress covariate means across all sampling groups
+calculate_pvalue <- function(variable) {
+  # calculate difference in means for active + passive treatment group
+  actpass <- paste0(variable, ' ~ double_treatment') %>%
+             as.formula() %>%
+             t.test(formula = ., data = analysis) %$%
+             c(estimate[2] - estimate[1], p.value) %>%
+             sapply(round, digits = 3)
+
+  # calculate difference in means for active treatment group
+  active  <- paste0(variable, ' ~ active_treatment') %>%
+             as.formula() %>%
+             t.test(formula = ., data = filter(analysis, obs_year > 2011)) %$%
+             c(estimate[2] - estimate[1], p.value) %>%
+             sapply(round, digits = 3)
+
+  # calculate difference in means for passive treatment group
+  passive <- paste0(variable, ' ~ passive_treatment') %>%
+             as.formula() %>%
+             t.test(formula = ., data = filter(analysis, !is.na(audit_id))) %$%
+             c(estimate[2] - estimate[1], p.value) %>%
+             sapply(round, digits = 3)
+
+  # put t-tests together
+  mean_diff <- c(actpass, active, passive)
+
+  # name all elements in vector
+  names(mean_diff) <- rep(c('diff', 'pvalue'), 3)
+
+  # return difference in means
+  return(mean_diff)
+}
+
+
+tibble(var = names(column1), actpass, active, passive, control)
+
+####### PAREI AQUI
 
 # loop over covariates and create table
 for (i in seq(covariates)) {
 
   # compute means for each treatment group
-  column1[1] <- filter(analysis, ebt.treatment == 0) %$%
+  column1[1] <- filter(
+                  analysis, active_treatment == 1 & passive_treatment == 1
+                ) %$%
                 mean(get(covariates[i]), na.rm = TRUE)
-  column1[2] <- filter(analysis, ebt.treatment == 1) %$%
+  column1[2] <- filter(
+                  analysis, active_treatment == 0 | passive_treatment == 0
+                ) %$%
                 mean(get(covariates[i]), na.rm = TRUE)
 
   # compute predicted difference across treatment groups
   column1[3:4] <- covariates[i] %>%
+    paste0(' ~ double.treatment + factor(obs.year) | 0 | 0 | state.id') %>%
+    as.formula() %>%
+    felm(data = analysis) %>%
+    {c(.[['coefficients']][[2, 1]], .[['cse']][[2]])}
+
+  # compute means for each treatment group
+  column2[1] <- filter(analysis, passive_treatment == 1) %$%
+                mean(get(covariates[i]), na.rm = TRUE)
+  column2[2] <- filter(analysis, ebt.treatment == 1) %$%
+                mean(get(covariates[i]), na.rm = TRUE)
+
+  # compute predicted difference across treatment groups
+  column2[3:4] <- covariates[i] %>%
     paste0(' ~ ebt.treatment + factor(audit.id) | 0 | 0 | state.id') %>%
     as.formula() %>%
     felm(data = analysis) %>%
     {c(.[['coefficients']][[2, 1]], .[['cse']][[2]])}
 
   # compute means for each treatment group
-  column2[1] <- filter(analysis, audit.treatment == 0) %$%
+  column3[1] <- filter(analysis, audit.treatment == 0) %$%
                 mean(get(covariates[i]), na.rm = TRUE)
-  column2[2] <- filter(analysis, audit.treatment == 1) %$%
-                mean(get(covariates[i]), na.rm = TRUE)
-
-  # compute predicted difference across treatment groups
-  column2[3:4] <- covariates[i] %>%
-    paste0(' ~ audit.treatment + factor(obs.year) | 0 | 0 | state.id') %>%
-    as.formula() %>%
-    felm(data = analysis) %>%
-    {c(.[['coefficients']][[2, 1]], .[['cse']][[2]])}
-
-  # compute means for each treatment group
-  column3[1] <- filter(analysis, double.treatment == 0) %$%
-                mean(get(covariates[i]), na.rm = TRUE)
-  column3[2] <- filter(analysis, double.treatment == 1) %$%
+  column3[2] <- filter(analysis, audit.treatment == 1) %$%
                 mean(get(covariates[i]), na.rm = TRUE)
 
   # compute predicted difference across treatment groups
   column3[3:4] <- covariates[i] %>%
-    paste0(' ~ double.treatment + factor(obs.year) | 0 | 0 | state.id') %>%
+    paste0(' ~ audit.treatment + factor(obs.year) | 0 | 0 | state.id') %>%
     as.formula() %>%
     felm(data = analysis) %>%
     {c(.[['coefficients']][[2, 1]], .[['cse']][[2]])}
