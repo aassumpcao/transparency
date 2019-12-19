@@ -165,10 +165,10 @@ n_information <- produce_samples(3)
 lapply(list(n_performance, n_corruption, n_information), '[[', 1)
 lapply(list(n_performance, n_corruption, n_information), '[[', 2)
 
-# table: hypothesis in experimental design sample size
-### manually include in table
+### table: hypothesis in experimental design sample size
+# manually included in table
 
-# table: summary statistics
+### table: summary statistics
 # produce means, difference in means and p.values for all variables so that i
 # print the descriptive statistics table
 column1 <- vector()
@@ -205,24 +205,27 @@ control <- calculate_means(active = 0, passive = 0)
 
 # create function to regress covariate means across all sampling groups
 calculate_pvalue <- function(variable) {
+  # group dataset so that observations are evaluated at the group level
+  data <- group_by(analysis, mun_id) %>% slice(1)
+
   # calculate difference in means for active + passive treatment group
   actpass <- paste0(variable, ' ~ double_treatment') %>%
              as.formula() %>%
-             t.test(formula = ., data = analysis) %$%
+             t.test(formula = ., data = data) %$%
              c(estimate[2] - estimate[1], p.value) %>%
              sapply(round, digits = 3)
 
   # calculate difference in means for active treatment group
   active  <- paste0(variable, ' ~ active_treatment') %>%
              as.formula() %>%
-             t.test(formula = ., data = filter(analysis, obs_year > 2011)) %$%
+             t.test(formula = ., data = filter(data, obs_year > 2011)) %$%
              c(estimate[2] - estimate[1], p.value) %>%
              sapply(round, digits = 3)
 
   # calculate difference in means for passive treatment group
   passive <- paste0(variable, ' ~ passive_treatment') %>%
              as.formula() %>%
-             t.test(formula = ., data = filter(analysis, !is.na(audit_id))) %$%
+             t.test(formula = ., data = filter(data, !is.na(audit_id))) %$%
              c(estimate[2] - estimate[1], p.value) %>%
              sapply(round, digits = 3)
 
@@ -236,194 +239,39 @@ calculate_pvalue <- function(variable) {
   return(mean_diff)
 }
 
+# apply function to extract all p-values and assign names to
+covariates_pvalue <- lapply(covariates, calculate_pvalue)
+names(covariates_pvalue) <- covariates
 
-tibble(var = names(column1), actpass, active, passive, control)
+# bind cols, transpose, format varnames and finally create a good dataset
+covariates_pvalue <- t(bind_cols(covariates_pvalue, n = rep('', 6)))
+covariates_pvalue %<>% as_tibble(.name_repair = 'universal')
 
-####### PAREI AQUI
+# create final table
+tibble(
+  var = c(cov_labels, 'n'),
+  actpass, diff1 = covariates_pvalue$`...1`, pvalue1 = covariates_pvalue$`...2`,
+  active,  diff2 = covariates_pvalue$`...3`, pvalue2 = covariates_pvalue$`...4`,
+  passive, diff3 = covariates_pvalue$`...5`, pvalue3 = covariates_pvalue$`...6`
+) %>%
+xtable::xtable(
+  caption = 'Descriptive Statistics by Treatment Condition',
+  label   = 'tab:descriptivestats3',
+  align   = rep('r', 11),
+  display = rep('s', 11)
+) %>%
+xtable::print.xtable(
+  # file = 'tables/tab_sumstats.tex',
+  table.placement   = '!htbp',
+  caption.placement = 'top',
+  hline.after       = c(-1, -1, 0, 10, 11, 11),
+  print.results     = TRUE,
+  include.rownames  = FALSE
+)
 
-# loop over covariates and create table
-for (i in seq(covariates)) {
+### Note: Manual editing required after this process
 
-  # compute means for each treatment group
-  column1[1] <- filter(
-                  analysis, active_treatment == 1 & passive_treatment == 1
-                ) %$%
-                mean(get(covariates[i]), na.rm = TRUE)
-  column1[2] <- filter(
-                  analysis, active_treatment == 0 | passive_treatment == 0
-                ) %$%
-                mean(get(covariates[i]), na.rm = TRUE)
-
-  # compute predicted difference across treatment groups
-  column1[3:4] <- covariates[i] %>%
-    paste0(' ~ double.treatment + factor(obs.year) | 0 | 0 | state.id') %>%
-    as.formula() %>%
-    felm(data = analysis) %>%
-    {c(.[['coefficients']][[2, 1]], .[['cse']][[2]])}
-
-  # compute means for each treatment group
-  column2[1] <- filter(analysis, passive_treatment == 1) %$%
-                mean(get(covariates[i]), na.rm = TRUE)
-  column2[2] <- filter(analysis, ebt.treatment == 1) %$%
-                mean(get(covariates[i]), na.rm = TRUE)
-
-  # compute predicted difference across treatment groups
-  column2[3:4] <- covariates[i] %>%
-    paste0(' ~ ebt.treatment + factor(audit.id) | 0 | 0 | state.id') %>%
-    as.formula() %>%
-    felm(data = analysis) %>%
-    {c(.[['coefficients']][[2, 1]], .[['cse']][[2]])}
-
-  # compute means for each treatment group
-  column3[1] <- filter(analysis, audit.treatment == 0) %$%
-                mean(get(covariates[i]), na.rm = TRUE)
-  column3[2] <- filter(analysis, audit.treatment == 1) %$%
-                mean(get(covariates[i]), na.rm = TRUE)
-
-  # compute predicted difference across treatment groups
-  column3[3:4] <- covariates[i] %>%
-    paste0(' ~ audit.treatment + factor(obs.year) | 0 | 0 | state.id') %>%
-    as.formula() %>%
-    felm(data = analysis) %>%
-    {c(.[['coefficients']][[2, 1]], .[['cse']][[2]])}
-
-  # build row with such information
-  row1 <- c(column1[1:3], column2[1:3], column3[1:3])
-  row2 <- c('', '', column1[4], '', '', column2[4], '', '', column3[4])
-
-  # bind into dataset
-  if (i == 1) {table <- tibble(row1, row2)}
-  else        {table <- bind_cols(table, row = row1, row = row2)}
-
-  # transpose table at the end of the loop
-  if (i == length(covariates)){table <- as.tibble(data.table::transpose(table))}
-}
-
-# remove unnecessary objects
-rm(list = objects(pattern = 'column|^i$|row'))
-
-# create vectors with the number of observations for descriptive stats table
-audit.obs  <- analysis %$% table(audit.treatment)  %>% unlist() %>% unname()
-ebt.obs    <- analysis %$% table(ebt.treatment)    %>% unlist() %>% unname()
-double.obs <- analysis %$% table(double.treatment) %>% unlist() %>% unname()
-
-# create additional rows (labels and number of observations)
-labels.row <- rep(c('Control', 'Treatment', 'Difference'), 3)
-sample.row <- c(audit.obs, '', ebt.obs, '', double.obs, '') %>%
-              {setNames(as.list(.), paste0('V', 1:9))} %>%
-              as.tibble()
-
-# calculate statistically significance by hand and paste onto table
-table %>%
-  select(V3, V6, V9) %>%
-  data.table::transpose() %>%
-  as.tibble() %>%
-  mutate_all(as.double) %>%
-  transmute(
-    pvalue1  =  V1 / V2,  pvalue2  =  V3 / V4,  pvalue3 =  V5 / V6,
-    pvalue4  =  V7 / V8,  pvalue5  =  V9 / V10, pvalue6 = V11 / V12,
-    pvalue7  = V13 / V14, pvalue8  = V15 / V16, pvalue9 = V17 / V18,
-    pvalue10 = V19 / V20, pvalue11 = V21 / V22) %>%
-  mutate_all(funs(case_when(abs(.) >= 2.576 ~ '***',
-                            abs(.) < 2.576 & abs(.) >= 1.960 ~ '**',
-                            abs(.) < 1.960 & abs(.) >= 1.645 ~ '*',
-                            abs(.) < 1.645 ~ NA_character_))) %>%
-  data.table::transpose()
-
-# insert rows
-table %<>%
-  mutate_all(as.numeric) %>%
-  mutate_all(round, digits = 3) %>%
-  mutate_all(as.character) %>%
-  bind_rows(sample.row)
-
-# set col and row names
-names(table) <- labels.row
-table$Variables <- c(cov.labels[1], NA, cov.labels[2], NA, cov.labels[3], NA,
-                     cov.labels[4], NA, cov.labels[5], NA, cov.labels[6], NA,
-                     cov.labels[7], NA, cov.labels[8], NA, cov.labels[9], NA,
-                     cov.labels[10], NA, cov.labels[11], NA, 'Sample Size')
-
-# print table
-# xtable::xtable(
-#   # table object
-#   table,
-#   # styling arguments
-#   caption = 'Descriptive Statistics by Treatment Condition',
-#   label = 'tab:descriptivestats3',
-#   align = rep('r', 11),
-#   digits = 3,
-#   display = rep('s', 11)
-# ) %>%
-# xtable::print.xtable(
-#   # styling arguments
-#   file = './proposal3/tab_sumstats1.tex',
-#   table.placement = '!htbp',
-#   caption.placement = 'top',
-#   hline.after = c(-1, -1, 0, 22, 23, 23),
-#   print.results = TRUE
-# )
-
-# produce tabulation with sample sizes
-# wrangle data, print tabulation, and manually pass values to latex
-analysis %$% table(audit.treatment, ebt.treatment)
-
-###
-# graph one: plot power curve
-# clear graphical device
-dev.off()
-
-# two-sided power calculations
-pcurv.10 <- lapply(X = 1:5570, FUN = power, alpha = .050)
-pcurv.05 <- lapply(X = 1:5570, FUN = power, alpha = .025)
-pcurv.01 <- lapply(X = 1:5570, FUN = power, alpha = .005)
-
-# find 90% power using two-sided .05 alpha (.025 on each side)
-power(n = 4203)
-
-# define graphical file and font family argument
-# pdf(file = './proposal3/power.pdf')
-par(family = 'LM Roman 10')
-
-# plot the .1 alpha result (two-sided @ .05)
-plot(x = 1:5570, y = pcurv.10, type = 'l', xlab = 'Sample Size (n)',
-  ylim = c(0,1), ylab = expression(paste('Power When ', mu, ' = 5570')),
-  col = 'black', lwd = 2)
-
-# add horizontal and vertical lines
-abline(h = .9,   lty = 1, lwd = 2, col = 'darksalmon')
-abline(v = 4203, lty = 1, lwd = 2, col = 'darksalmon')
-
-# merge .05 and .01 alphas
-points(x = 1:5570, y = pcurv.10, type = 'l', col = 'black', lwd = 2)
-points(x = 1:5570, y = pcurv.05, type = 'l', col = 4, lwd = 2)
-points(x = 1:5570, y = pcurv.01, type = 'l', col = 'grey', lwd = 2)
-
-# insert grid
-grid(col = gray(.3))
-
-# insert label point at power = 90%
-text(x = 4500, y = .5, labels = 'n = 4203', cex = .75)
-
-# include legend
-legend(x = 3000, y = .4,  col = c('black' , 4, 'grey'), cex = .75, lwd = 2,
-  legend = c('two-sided alpha = .10', 'two-sided alpha = .05',
-  'two-sided alpha = .01'))
-
-# remove table to avoid confusion
-rm(list = objects(pattern = '^table$|sample|labels\\.row$|pcurv'))
-
-###
-# table: frequencies for sampling strategy
-# display sample size by year
-filter(analysis, obs.year < 2012) %$%
-  table(obs.year) %>%
-  prop.table() %>%
-  as.tibble() %>%
-  transmute(year = obs.year, frequency = n * 100, mun.n = round(n * 916, 0))
-
-###
-# table one: information outcomes
+### table: information outcomes
 # create formula with no covariates
 information.reg0 <- outcomes[4:5] %>%
   paste0(' ~ audit.treatment')
