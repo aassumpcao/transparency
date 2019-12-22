@@ -104,7 +104,7 @@ analysis %<>%
 # subset outcomes and create labels for each outcome
 outcomes   <- names(analysis) %>% .[{which(str_detect(., '_outcome'))}]
 out_labels <- c('MUDP Adoption', 'Municipal Development Index (MDI)',
-  'Sanctions Imposed', 'FOI Request (time)', 'FOI Request (accuracy)',
+  'Sanctions Imposed', 'FOIA Request (time)', 'FOIA Request (accuracy)',
   'Acts of Mismanagement (ln)', 'Acts of Corruption (ln)',
   'Number of Irregularities (ln)'
 )
@@ -121,7 +121,7 @@ cov_labels <- c(
 # subset treatment assignment indicators and create labels
 treatment     <- names(analysis) %>% .[{which(str_detect(., 'treatment$'))}]
 treat_labels  <- c(
-  'Active Transparency','Passive Transparency','Active and Passive Transparency'
+  'Active Transparency','Passive Transparency','Active + Passive Transparency'
 )
 
 # make last changes to data before analysis
@@ -248,6 +248,7 @@ covariates_pvalue <- t(bind_cols(covariates_pvalue, n = rep('', 6)))
 covariates_pvalue %<>% as_tibble(.name_repair = 'universal')
 
 # create final table
+### Note: Manual editing required after this process
 tibble(
   var = c(cov_labels, 'n'),
   actpass, diff1 = covariates_pvalue$`...1`, pvalue1 = covariates_pvalue$`...2`,
@@ -269,45 +270,179 @@ xtable::print.xtable(
   include.rownames  = FALSE
 )
 
-### Note: Manual editing required after this process
-
-### table: information outcomes
+### table: performance outcomes
+#############
+### do other DID & RCT tests!!!!! ########
+##############
 # create formula with no covariates
-information.reg0 <- outcomes[4:5] %>%
-  paste0(' ~ audit.treatment')
+performance_reg0 <- outcomes[1:3] %>%
+  paste0(' ~ active_treatment * passive_treatment') %>%
+  sapply(FUN = as.formula)
 
 # create formula for covariates and fixed-effects
-information.reg1 <- outcomes[4:5] %>%
-  paste0(' ~ audit.treatment + ') %>%
+performance_reg1 <- outcomes[1:3] %>%
+  paste0(' ~ active_treatment * passive_treatment + ') %>%
   paste0(paste0(covariates, collapse = ' + ')) %>%
-  paste0(' + factor(obs.year)')
+  paste0(' | 0 | 0 | mun_id') %>%
+  sapply(FUN = as.formula)
 
-# create formulas for all six regresions
-active0.infotime <- lm(as.formula(information.reg0[1]), data = info.ds)
-active1.infotime <- lm(as.formula(information.reg1[1]), data = info.ds)
-active0.infoqual <- lm(as.formula(information.reg0[2]), data = info.ds)
-active1.infoqual <- lm(as.formula(information.reg1[2]), data = info.ds)
+# create formulas for all six regressions
+performance_results <- c(performance_reg0, performance_reg1) %>%
+                       lapply(felm, data = analysis, exactDOF = TRUE)
+
+# produce table two: performance outcomes
+stargazer(
+
+  # regressions with performance outcomes
+  performance_results[c(1,4,2,5,3,6)],
+
+  # table cosmetics
+  type = 'text',
+  title = 'The Effect of Active Transparency on Performance',
+  style = 'default',
+  out = 'tables/tab_transparency1.tex',
+  out.header = FALSE,
+  column.labels = out_labels[1:3],
+  column.separate = rep(2, 3),
+  covariate.labels = c(treat_labels[c(3,1,2)], cov_labels),
+  order = c('\\:', 'active', 'passive'),
+  dep.var.caption = '',
+  dep.var.labels.include = FALSE,
+  align = TRUE,
+  column.sep.width = '-2pt',
+  digit.separate = 3,
+  digits = 3,
+  digits.extra = 0,
+  df = TRUE,
+  font.size = 'scriptsize',
+  header = FALSE,
+  initial.zero = FALSE,
+  model.names = FALSE,
+  keep = 'active|passive',
+  label = 'tab:transparency1',
+  no.space = FALSE,
+  omit = 'mun_',
+  omit.labels = 'Municipal Controls',
+  omit.yes.no = c('Yes', '-'),
+  omit.stat = c('ser', 'adj.rsq', 'rsq'),
+  table.placement = 'H'
+)
+
+# spit f-stat out
+lapply(performance_results, function(x){summary(x)$fstat}) %>%
+.[c(1,4,2,5,3,6)] %>%
+sapply(round, 1) %>%
+paste0('^{***} ', collapse = '& ') %>%
+{paste0(cat('\\emph{F}-stat & '), ., ' \\')}
+
+### table: corruption outcomes
+#############
+### do other DID tests!!!!! ########
+##############
+# create info dataset
+corrup_ds <- filter(analysis, !is.na(audit_id))
+
+# create formula with no covariates
+corruption_reg0 <- outcomes[6:8] %>%
+  paste0(' ~ passive_treatment') %>%
+  sapply(FUN = as.formula)
+
+# create formula for covariates and fixed-effects
+corruption_reg1 <- outcomes[6:8] %>%
+  paste0(' ~ passive_treatment + ') %>%
+  paste0(paste0(covariates, collapse = ' + ')) %>%
+  paste0(' | 0 | 0 | mun_id') %>%
+  sapply(FUN = as.formula)
+
+# create formulas for all six regressions
+corruption_results <- c(corruption_reg0, corruption_reg1) %>%
+                      lapply(felm, data = corrup_ds, exactDOF = TRUE)
+
+# produce table two: corruption outcomes
+stargazer(
+
+  # regressions with corruption outcomes
+  corruption_results[c(1,4,2,5,3,6)],
+
+  # table cosmetics
+  type = 'text',
+  title = 'The Effect of Passive Transparency on Corruption',
+  style = 'default',
+  # out = 'tables/tab_transparency2.tex',
+  out.header = FALSE,
+  column.labels = out_labels[6:8],
+  column.separate = rep(2, 3),
+  covariate.labels = c(treat_labels[2], cov_labels),
+  dep.var.caption = '',
+  dep.var.labels.include = FALSE,
+  align = FALSE,
+  column.sep.width = '-2pt',
+  digit.separate = 3,
+  digits = 3,
+  digits.extra = 0,
+  df = TRUE,
+  font.size = 'scriptsize',
+  header = FALSE,
+  initial.zero = FALSE,
+  model.names = FALSE,
+  keep = c('passive'),
+  label = 'tab:transparency2',
+  no.space = FALSE,
+  omit = 'mun_',
+  omit.labels = 'Municipal Controls',
+  omit.yes.no = c('Yes', '-'),
+  omit.stat = c('ser', 'adj.rsq', 'rsq'),
+  table.placement = 'H'
+)
+
+# spit f-stat out
+lapply(corruption_results, function(x){summary(x)$fstat}) %>%
+.[c(1,4,2,5,3,6)] %>%
+sapply(round, 1) %>%
+paste0('^{***} ', collapse = '& ') %>%
+{paste0(cat('\\emph{F}-stat & '), ., ' \\')}
+
+### table: information outcomes
+#############
+### do other RCT tests!!!!! ########
+##############
+# create info dataset
+info_ds <- filter(analysis, obs_year > 2011)
+
+# create formula with no covariates
+information_reg0 <- outcomes[4:5] %>%
+  paste0(' ~ active_treatment') %>%
+  sapply(FUN = as.formula)
+
+# create formula for covariates and fixed-effects
+information_reg1 <- outcomes[4:5] %>%
+  paste0(' ~ active_treatment + ') %>%
+  paste0(paste0(covariates, collapse = ' + ')) %>%
+  paste0(' | obs_year | 0 | mun_id') %>%
+  sapply(FUN = as.formula)
+
+# create formulas for all six regressions
+information_results <- c(information_reg0, information_reg1) %>%
+                       lapply(felm, data = info_ds, exactDOF = TRUE)
 
 # produce table two: information outcomes
 stargazer(
 
-  # regressions with outcome 1: outcome.elected
-  list(active0.infotime, active1.infotime, active0.infoqual, active1.infoqual),
+  # regressions with information outcomes
+  information_results[c(1,3,2,4)],
 
   # table cosmetics
   type = 'text',
   title = 'The Effect of Active Transparency on Information Requests',
   style = 'default',
-  # out = './proposal3/tab_transparency2.tex',
+  # out = 'tables/tab_transparency3.tex',
   out.header = FALSE,
-  column.labels = o.labels[4:5],
+  column.labels = out_labels[4:5],
   column.separate = rep(2, 2),
-  covariate.labels = c(t.labels[1], cov.labels),
+  covariate.labels = c(treat_labels[1], cov_labels),
   dep.var.caption = '',
   dep.var.labels.include = FALSE,
   align = TRUE,
-  se = list(cse(active0.infotime), cse(active1.infotime),
-            cse(active0.infoqual), cse(active1.infoqual)),
   column.sep.width = '-2pt',
   digit.separate = 3,
   digits = 3,
@@ -317,131 +452,18 @@ stargazer(
   header = FALSE,
   initial.zero = FALSE,
   model.names = FALSE,
-  keep = c('audit'),
-  label = 'tab:transparency2',
+  keep = c('active'),
+  label = 'tab:transparency1',
   no.space = FALSE,
-  omit = c('mun\\.', 'obs\\.year'),
+  omit = c('mun_', 'obs_year'),
   omit.labels = c('Municipal Controls', 'Year Fixed-Effects'),
   omit.yes.no = c('Yes', '-'),
-  omit.stat = c('ser', 'f'),
   table.placement = '!htbp'
 )
 
-###
-# table two: corruption outcomes
-# create formula with no covariates
-corruption.reg0 <- outcomes[c(1:3, 6:7)] %>%
-  paste0(' ~ ebt.treatment')
-
-# create formula for covariates and fixed-effects
-corruption.reg1 <- outcomes[c(1:3, 6:7)] %>%
-  paste0(' ~ ebt.treatment + ') %>%
-  paste0(paste0(covariates, collapse = ' + '))
-
-# create formulas for all six regressions
-passive0.corruption <- lm(as.formula(corruption.reg0[2]), data = corrup.ds)
-passive1.corruption <- lm(as.formula(corruption.reg1[2]), data = corrup.ds)
-passive0.mismanagmt <- lm(as.formula(corruption.reg0[1]), data = corrup.ds)
-passive1.mismanagmt <- lm(as.formula(corruption.reg1[1]), data = corrup.ds)
-passive0.irregtotal <- lm(as.formula(corruption.reg0[3]), data = corrup.ds)
-passive1.irregtotal <- lm(as.formula(corruption.reg1[3]), data = corrup.ds)
-
-# produce table one: corruption outcomes
-stargazer(
-
-  # regressions with outcome 1: outcome.elected
-  list(passive0.corruption, passive1.corruption, passive0.mismanagmt,
-       passive1.mismanagmt, passive0.irregtotal, passive1.irregtotal),
-
-  # table cosmetics
-  type = 'text',
-  title = 'The Effect of Passive Transparency on Corruption Irregularities',
-  style = 'default',
-  # out = './proposal3/tab_corruption1.tex',
-  out.header = FALSE,
-  column.labels = o.labels[c(2, 1, 3)],
-  column.separate = rep(2, 3),
-  covariate.labels = c(t.labels[2], cov.labels),
-  dep.var.caption = '',
-  dep.var.labels.include = FALSE,
-  align = TRUE,
-  se = list(cse(passive0.corruption), cse(passive1.corruption),
-            cse(passive0.mismanagmt), cse(passive1.mismanagmt),
-            cse(passive0.irregtotal), cse(passive1.irregtotal)),
-  column.sep.width = '-2pt',
-  digit.separate = 3,
-  digits = 3,
-  digits.extra = 0,
-  df = FALSE,
-  font.size = 'scriptsize',
-  header = FALSE,
-  initial.zero = FALSE,
-  model.names = FALSE,
-  keep = c('ebt'),
-  label = 'tab:corruption1',
-  no.space = FALSE,
-  omit = 'mun\\.',
-  omit.labels = 'Municipal Controls',
-  omit.yes.no = c('Yes', '-'),
-  omit.stat = c('ser', 'f'),
-  table.placement = '!htbp'
-)
-
-###
-# table three: performance and sanction outcomes
-# create formula with no covariates
-performance.reg0 <- outcomes[6:7] %>%
-  paste0(' ~ double.treatment')
-
-# create formula for covariates and fixed-effects
-performance.reg1 <- outcomes[6:7] %>%
-  paste0(' ~ double.treatment + ') %>%
-  paste0(paste0(covariates, collapse = ' + ')) %>%
-  paste0(' + factor(obs.year)')
-
-# create formulas for all six regresions
-performance0.mdp       <- lm(as.formula(performance.reg0[1]), data = perf.ds)
-performance1.mdp       <- lm(as.formula(performance.reg1[1]), data = perf.ds)
-performance0.sanctions <- lm(as.formula(performance.reg0[2]), data = perf.ds)
-performance1.sanctions <- lm(as.formula(performance.reg1[2]), data = perf.ds)
-
-# produce table three: performance and sanction outcomes
-stargazer(
-
-  # regressions with outcome 1: outcome.elected
-  list(performance0.mdp, performance1.mdp, performance0.sanctions,
-       performance1.sanctions),
-
-  # table cosmetics
-  type = 'text',
-  title = paste0('The Effect of Active and Passive Transparency on Performance',
-                 ' and Sanctions'),
-  style = 'default',
-  # out = './proposal3/tab_performance3.tex',
-  out.header = FALSE,
-  column.labels = o.labels[6:7],
-  column.separate = rep(2, 2),
-  covariate.labels = c(t.labels[3], cov.labels),
-  dep.var.caption = '',
-  dep.var.labels.include = FALSE,
-  align = TRUE,
-  se = list(cse(performance0.mdp), cse(performance1.mdp),
-            cse(performance0.sanctions), cse(performance1.sanctions)),
-  column.sep.width = '-2pt',
-  digit.separate = 3,
-  digits = 3,
-  digits.extra = 0,
-  df = TRUE,
-  font.size = 'scriptsize',
-  header = FALSE,
-  initial.zero = FALSE,
-  model.names = FALSE,
-  keep = c('double'),
-  label = 'tab:performance3',
-  no.space = FALSE,
-  omit = c('mun\\.', 'obs\\.year'),
-  omit.labels = c('Municipal Controls', 'Year Fixed-Effects'),
-  omit.yes.no = c('Yes', '-'),
-  omit.stat = c('ser', 'f'),
-  table.placement = '!htbp'
-)
+# spit f-stat out
+lapply(information_results, function(x){summary(x)$fstat}) %>%
+.[c(1,3,2,4)] %>%
+sapply(round, 1) %>%
+paste0('^{***} ', collapse = '& ') %>%
+{paste0(cat('\\emph{F}-stat & '), ., ' \\')}
