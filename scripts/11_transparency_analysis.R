@@ -274,6 +274,34 @@ xtable::print.xtable(
 #############
 ### do other DID & RCT tests!!!!! ########
 ##############
+
+# create tests for difference-in-differences assumptions
+# 1. parallel trends
+# 2. stable composition of groups
+# 3. no simultaneous, external shock
+analysis %>%
+  select(obs_year, mun_id, contains('outcome'), contains('treatment')) %>%
+  mutate_all(as.numeric) %>%
+  group_by(obs_year, active_treatment) %>%
+  summarize()
+  mutate(obs_year = lubridate::parse_date_time(obs_year,'Y', truncated = 2)) %>%
+  mutate(post = obs_year > 2011, treat = active_treatment == 1)
+
+
+analysis %$% table(active_treatment, passive_treatment)
+  # group_by(obs_year, active_treatment) %>%
+  # summarize_all(mean) %>%
+  # mutate(
+  #   passive_treatment = ifelse(obs_year > 2011, 1, 0),
+  #   obs_year = lubridate::parse_date_time(obs_year, 'Y', truncated = 2)
+  # )
+
+ggplot(parallel_trends, aes(x = as.Date(obs_year), y = ifdm_outcome, color = treat)) +
+  stat_summary(geom = 'line') +
+  scale_x_date(date_labels = '%Y', date_breaks = '1 year') +
+  geom_vline(xintercept = as.Date('2012-01-01'), linetype = 'dashed')
+
+
 # create formula with no covariates
 performance_reg0 <- outcomes[1:3] %>%
   paste0(' ~ active_treatment * passive_treatment') %>%
@@ -409,6 +437,7 @@ paste0('^{***} ', collapse = '& ') %>%
 # create info dataset
 info_ds <- filter(analysis, obs_year > 2011)
 
+### outcomes
 # create formula with no covariates
 information_reg0 <- outcomes[4:5] %>%
   paste0(' ~ active_treatment') %>%
