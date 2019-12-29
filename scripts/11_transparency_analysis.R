@@ -171,13 +171,9 @@ lapply(list(n_performance, n_corruption, n_information), '[[', 2)
 ### table: summary statistics
 # produce means, difference in means and p.values for all variables so that i
 # print the descriptive statistics table
-column1 <- vector()
-column2 <- vector()
-column3 <- vector()
-column4 <- vector()
 
 # create function to produce means across all covariates
-calculate_means <- function(active = 1, passive = 1) {
+calculate_means <- function(active = 1, passive = 1, vars = covariates) {
   # filter dataset to contain municipal level data
   dataset <- analysis %>%
     filter(active_treatment == active & passive_treatment == passive) %>%
@@ -185,7 +181,8 @@ calculate_means <- function(active = 1, passive = 1) {
 
   # produce vector of means
   dataset %>%
-    select(mun_id, covariates) %>%
+    select(mun_id, vars) %>%
+    mutate_at(vars(-group_cols()), as.numeric) %>%
     summarize_all(mean, na.rm = TRUE) %>%
     ungroup() %>%
     select(-mun_id) %>%
@@ -204,9 +201,14 @@ passive <- calculate_means(active = 0, passive = 1)
 control <- calculate_means(active = 0, passive = 0)
 
 # create function to regress covariate means across all sampling groups
-calculate_pvalue <- function(variable) {
-  # group dataset so that observations are evaluated at the group level
-  data <- group_by(analysis, mun_id) %>% slice(1)
+calculate_pvalue <- function(variable, covs = TRUE) {
+  # define grouping variables
+  if (covs == TRUE) {
+    data <- group_by(analysis, mun_id) %>% slice(1)
+  } else {
+    data <- group_by(analysis, obs_year) %>%
+            mutate_at(vars(-mun_id, obs_year), as.numeric)
+  }
 
   # calculate difference in means for active + passive treatment group
   actpass <- paste0(variable, ' ~ double_treatment') %>%
@@ -279,29 +281,68 @@ xtable::print.xtable(
 # 1. parallel trends
 # 2. stable composition of groups
 # 3. no simultaneous, external shock
+# create function to calculate mean difference in outcomes across years
+
+# parallel trends
 analysis %>%
-  select(obs_year, mun_id, contains('outcome'), contains('treatment')) %>%
-  mutate_all(as.numeric) %>%
-  group_by(obs_year, active_treatment) %>%
-  summarize()
-  mutate(obs_year = lubridate::parse_date_time(obs_year,'Y', truncated = 2)) %>%
-  mutate(post = obs_year > 2011, treat = active_treatment == 1)
+  select(obs_year, mun_id, contains('_o'), contains('_t')) %>%
+  mutate_at(vars(-obs_year, -mun_id), as.numeric) %>%
+  mutate(all_treatments = factor(case_when(
+    double_treatment == 1 ~ 4,
+    active_treatment == 1 & passive_treatment == 0 ~ 3,
+    active_treatment == 0 & passive_treatment == 1 ~ 2,
+    active_treatment == 0 & passive_treatment == 0 ~ 1
+  ))) %>%
+  group_by(obs_year, all_treatments) %>%
+  summarize_all(
+    obs_year = first(obs_year))
+  mutate(post = obs_year > 2011, treat = active_treatment == 1) %>%
+  ggplot() +
+    stat_summary(
+      aes(x = post, y = mdp_outcome, group = treat, color = treat),
+      fun.data = 'mean_cl_boot', geom = 'smooth', se = TRUE
+    )
 
+#
 
-analysis %$% table(active_treatment, passive_treatment)
-  # group_by(obs_year, active_treatment) %>%
-  # summarize_all(mean) %>%
-  # mutate(
-  #   passive_treatment = ifelse(obs_year > 2011, 1, 0),
-  #   obs_year = lubridate::parse_date_time(obs_year, 'Y', truncated = 2)
-  # )
+# # calculate means for all covariates and all groups
+# actpass <- calculate_means(active = 1, passive = 1, vars = outcomes)
+# active  <- calculate_means(active = 1, passive = 0, vars = outcomes)
+# passive <- calculate_means(active = 0, passive = 1, vars = outcomes)
+# control <- calculate_means(active = 0, passive = 0, vars = outcomes)
 
-ggplot(parallel_trends, aes(x = as.Date(obs_year), y = ifdm_outcome, color = treat)) +
-  stat_summary(geom = 'line') +
-  scale_x_date(date_labels = '%Y', date_breaks = '1 year') +
-  geom_vline(xintercept = as.Date('2012-01-01'), linetype = 'dashed')
+# # apply function to extract all p-values and assign names to
+# outcomes_pvalue <- lapply(outcomes[1:3], calculate_pvalue, FALSE)
+# names(outcomes_pvalue) <- outcomes[1:3]
 
+# # bind cols, transpose, format varnames and finally create a good dataset
+# outcomes_pvalue <- t(bind_cols(outcomes_pvalue, n = rep('', 6)))
+# outcomes_pvalue %<>% as_tibble(.name_repair = 'universal')
 
+# # create final table
+# ### Note: Manual editing required after this process
+# tibble(
+#   var = c(out_labels[1:3], 'n'),
+#   actpass[c(1:3, 9)], diff1 = outcomes_pvalue$`...1`, pvalue1 = outcomes_pvalue$`...2`,
+#   active[c(1:3, 9)],  diff2 = outcomes_pvalue$`...3`, pvalue2 = outcomes_pvalue$`...4`,
+#   passive[c(1:3, 9)], diff3 = outcomes_pvalue$`...5`, pvalue3 = outcomes_pvalue$`...6`
+# ) %>%
+# xtable::xtable(
+#   caption = 'Descriptive Statistics by Treatment Condition',
+#   label   = 'tab:descriptivestats3',
+#   # align   = rep('r', 11),
+#   # display = rep('s', 11)
+# ) %>%
+# xtable::print.xtable(
+#   # file = 'tables/tab_sumstats.tex',
+#   table.placement   = '!htbp',
+#   caption.placement = 'top',
+#   # hline.after       = c(-1, -1, 0, 10, 11, 11),
+#   print.results     = TRUE,
+#   include.rownames  = FALSE
+# )
+
+### table: performance outcomes
 # create formula with no covariates
 performance_reg0 <- outcomes[1:3] %>%
   paste0(' ~ active_treatment * passive_treatment') %>%
