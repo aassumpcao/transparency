@@ -464,3 +464,29 @@ SchoolAidDataset %$% table(councillor_performance2)
 SchoolAidDataset %$% table(councillor_performance3)
 SchoolAidDataset %$% table(councillor_performance4)
 
+
+
+# function
+  # find variable for which we want to test coefficient stability
+  try(silent = TRUE, expr = {
+    i <- which(str_detect(names(restricted$coefficients), 'invalid'))
+    j <- which(str_detect(names(unrestricted$coefficients), 'invalid'))
+  })
+  try(silent = TRUE, expr = {
+    i <- which(str_detect(row.names(restricted$coefficients), 'invalid'))
+    j <- which(str_detect(row.names(unrestricted$coefficients), 'invalid'))
+  })
+
+
+  timet1 <- tryCatch(
+    expr = {group1[str_which(rownames(group1), 'time'), 'Estimate']},
+    error = function(e){0}
+  )
+  treat1 <- tryCatch(
+    expr = {group1[str_which(rownames(group1), 'time', TRUE), 'Estimate']},
+    error = function(e){group1[1]}
+  )
+  timet2 <- tryCatch(
+    expr = {group2[1]},
+    error = function(e){0}
+  )

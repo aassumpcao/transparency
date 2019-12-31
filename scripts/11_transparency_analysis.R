@@ -96,7 +96,9 @@ analysis %<>%
   mutate(
     double_treatment = ifelse(
       active_treatment == 1 & passive_treatment == 1, 1, 0
-    )
+    ),
+    time_trend = as.integer(obs_year) - 2005,
+    time_trend_sqrt = time_trend^2,
   ) %>%
   mutate_at(vars(matches('^ebt.*outcome')), list(~ifelse(is.na(.), 0, .)))
 
@@ -273,84 +275,29 @@ xtable::print.xtable(
 )
 
 ### table: performance outcomes
-#############
-### do other DID & RCT tests!!!!! ########
-##############
-
 # create tests for difference-in-differences assumptions
 # 1. parallel trends
 # 2. stable composition of groups
 # 3. no simultaneous, external shock
-# create function to calculate mean difference in outcomes across years
 
 # parallel trends
-analysis %>%
-  select(obs_year, mun_id, contains('_o'), contains('_t')) %>%
-  mutate_at(vars(-obs_year, -mun_id), as.numeric) %>%
-  mutate(all_treatments = factor(case_when(
-    double_treatment == 1 ~ 4,
-    active_treatment == 1 & passive_treatment == 0 ~ 3,
-    active_treatment == 0 & passive_treatment == 1 ~ 2,
-    active_treatment == 0 & passive_treatment == 0 ~ 1
-  ))) %>%
-  group_by(obs_year, all_treatments) %>%
-  summarize_all(
-    obs_year = first(obs_year))
-  mutate(post = obs_year > 2011, treat = active_treatment == 1) %>%
-  ggplot() +
-    stat_summary(
-      aes(x = post, y = mdp_outcome, group = treat, color = treat),
-      fun.data = 'mean_cl_boot', geom = 'smooth', se = TRUE
-    )
+### include time_trends
 
-#
+# stable composition of groups
+### no change in control or tretament
 
-# # calculate means for all covariates and all groups
-# actpass <- calculate_means(active = 1, passive = 1, vars = outcomes)
-# active  <- calculate_means(active = 1, passive = 0, vars = outcomes)
-# passive <- calculate_means(active = 0, passive = 1, vars = outcomes)
-# control <- calculate_means(active = 0, passive = 0, vars = outcomes)
-
-# # apply function to extract all p-values and assign names to
-# outcomes_pvalue <- lapply(outcomes[1:3], calculate_pvalue, FALSE)
-# names(outcomes_pvalue) <- outcomes[1:3]
-
-# # bind cols, transpose, format varnames and finally create a good dataset
-# outcomes_pvalue <- t(bind_cols(outcomes_pvalue, n = rep('', 6)))
-# outcomes_pvalue %<>% as_tibble(.name_repair = 'universal')
-
-# # create final table
-# ### Note: Manual editing required after this process
-# tibble(
-#   var = c(out_labels[1:3], 'n'),
-#   actpass[c(1:3, 9)], diff1 = outcomes_pvalue$`...1`, pvalue1 = outcomes_pvalue$`...2`,
-#   active[c(1:3, 9)],  diff2 = outcomes_pvalue$`...3`, pvalue2 = outcomes_pvalue$`...4`,
-#   passive[c(1:3, 9)], diff3 = outcomes_pvalue$`...5`, pvalue3 = outcomes_pvalue$`...6`
-# ) %>%
-# xtable::xtable(
-#   caption = 'Descriptive Statistics by Treatment Condition',
-#   label   = 'tab:descriptivestats3',
-#   # align   = rep('r', 11),
-#   # display = rep('s', 11)
-# ) %>%
-# xtable::print.xtable(
-#   # file = 'tables/tab_sumstats.tex',
-#   table.placement   = '!htbp',
-#   caption.placement = 'top',
-#   # hline.after       = c(-1, -1, 0, 10, 11, 11),
-#   print.results     = TRUE,
-#   include.rownames  = FALSE
-# )
+# no simultaneous, external shock
+### use args in favor of audit program
 
 ### table: performance outcomes
 # create formula with no covariates
 performance_reg0 <- outcomes[1:3] %>%
-  paste0(' ~ active_treatment * passive_treatment') %>%
+  paste0(' ~ active_treatment * passive_treatment * time_trend') %>%
   sapply(FUN = as.formula)
 
 # create formula for covariates and fixed-effects
 performance_reg1 <- outcomes[1:3] %>%
-  paste0(' ~ active_treatment * passive_treatment + ') %>%
+  paste0(' ~ active_treatment * passive_treatment * time_trend + ') %>%
   paste0(paste0(covariates, collapse = ' + ')) %>%
   paste0(' | 0 | 0 | mun_id') %>%
   sapply(FUN = as.formula)
@@ -369,16 +316,16 @@ stargazer(
   type = 'text',
   title = 'The Effect of Active Transparency on Performance',
   style = 'default',
-  out = 'tables/tab_transparency1.tex',
+  # out = 'tables/tab_transparency1.tex',
   out.header = FALSE,
   column.labels = out_labels[1:3],
   column.separate = rep(2, 3),
-  covariate.labels = c(treat_labels[c(3,1,2)], cov_labels),
+  covariate.labels = c(treat_labels[c(3,1,2)]),
   order = c('\\:', 'active', 'passive'),
   dep.var.caption = '',
   dep.var.labels.include = FALSE,
   align = TRUE,
-  column.sep.width = '-2pt',
+  column.sep.width = '3pt',
   digit.separate = 3,
   digits = 3,
   digits.extra = 0,
@@ -387,11 +334,11 @@ stargazer(
   header = FALSE,
   initial.zero = FALSE,
   model.names = FALSE,
-  keep = 'active|passive',
+  keep = 'treatment1$',
   label = 'tab:transparency1',
-  no.space = FALSE,
-  omit = 'mun_',
-  omit.labels = 'Municipal Controls',
+  no.space =  FALSE,
+  omit = c('time_trend', 'mun_'),
+  omit.labels = c('Time Trend Interactions', 'Municipal Controls'),
   omit.yes.no = c('Yes', '-'),
   omit.stat = c('ser', 'adj.rsq', 'rsq'),
   table.placement = 'H'
@@ -405,20 +352,18 @@ paste0('^{***} ', collapse = '& ') %>%
 {paste0(cat('\\emph{F}-stat & '), ., ' \\')}
 
 ### table: corruption outcomes
-#############
-### do other DID tests!!!!! ########
-##############
 # create info dataset
-corrup_ds <- filter(analysis, !is.na(audit_id))
+corrup_ds <- filter(analysis, !is.na(audit_id)) %>%
+             mutate(time_trend = time_trend - 7)
 
 # create formula with no covariates
 corruption_reg0 <- outcomes[6:8] %>%
-  paste0(' ~ passive_treatment') %>%
+  paste0(' ~ passive_treatment * time_trend') %>%
   sapply(FUN = as.formula)
 
 # create formula for covariates and fixed-effects
 corruption_reg1 <- outcomes[6:8] %>%
-  paste0(' ~ passive_treatment + ') %>%
+  paste0(' ~ passive_treatment * time_trend +') %>%
   paste0(paste0(covariates, collapse = ' + ')) %>%
   paste0(' | 0 | 0 | mun_id') %>%
   sapply(FUN = as.formula)
@@ -441,11 +386,11 @@ stargazer(
   out.header = FALSE,
   column.labels = out_labels[6:8],
   column.separate = rep(2, 3),
-  covariate.labels = c(treat_labels[2], cov_labels),
+  covariate.labels = treat_labels[2],
   dep.var.caption = '',
   dep.var.labels.include = FALSE,
-  align = FALSE,
-  column.sep.width = '-2pt',
+  align = TRUE,
+  column.sep.width = '3pt',
   digit.separate = 3,
   digits = 3,
   digits.extra = 0,
@@ -454,11 +399,11 @@ stargazer(
   header = FALSE,
   initial.zero = FALSE,
   model.names = FALSE,
-  keep = c('passive'),
+  keep = 'treatment1$',
   label = 'tab:transparency2',
   no.space = FALSE,
-  omit = 'mun_',
-  omit.labels = 'Municipal Controls',
+  omit = c('time_trend', 'mun_'),
+  omit.labels = c('Time Trend Interactions', 'Municipal Controls'),
   omit.yes.no = c('Yes', '-'),
   omit.stat = c('ser', 'adj.rsq', 'rsq'),
   table.placement = 'H'
@@ -472,23 +417,20 @@ paste0('^{***} ', collapse = '& ') %>%
 {paste0(cat('\\emph{F}-stat & '), ., ' \\')}
 
 ### table: information outcomes
-#############
-### do other RCT tests!!!!! ########
-##############
 # create info dataset
 info_ds <- filter(analysis, obs_year > 2011)
 
 ### outcomes
 # create formula with no covariates
 information_reg0 <- outcomes[4:5] %>%
-  paste0(' ~ active_treatment') %>%
+  paste0(' ~ active_treatment * time_trend ') %>%
   sapply(FUN = as.formula)
 
 # create formula for covariates and fixed-effects
 information_reg1 <- outcomes[4:5] %>%
-  paste0(' ~ active_treatment + ') %>%
+  paste0(' ~ active_treatment * time_trend + ') %>%
   paste0(paste0(covariates, collapse = ' + ')) %>%
-  paste0(' | obs_year | 0 | mun_id') %>%
+  paste0(' | 0 | 0 | mun_id') %>%
   sapply(FUN = as.formula)
 
 # create formulas for all six regressions
@@ -503,17 +445,17 @@ stargazer(
 
   # table cosmetics
   type = 'text',
-  title = 'The Effect of Active Transparency on Information Requests',
+  title = 'The Effect of Active Transparency on Information',
   style = 'default',
   # out = 'tables/tab_transparency3.tex',
   out.header = FALSE,
   column.labels = out_labels[4:5],
   column.separate = rep(2, 2),
-  covariate.labels = c(treat_labels[1], cov_labels),
+  covariate.labels = treat_labels[1],
   dep.var.caption = '',
   dep.var.labels.include = FALSE,
   align = TRUE,
-  column.sep.width = '-2pt',
+  column.sep.width = '3pt',
   digit.separate = 3,
   digits = 3,
   digits.extra = 0,
@@ -522,12 +464,13 @@ stargazer(
   header = FALSE,
   initial.zero = FALSE,
   model.names = FALSE,
-  keep = c('active'),
-  label = 'tab:transparency1',
+  # keep = 'treatment1$',
+  label = 'tab:transparency3',
   no.space = FALSE,
-  omit = c('mun_', 'obs_year'),
-  omit.labels = c('Municipal Controls', 'Year Fixed-Effects'),
+  omit = c('time_trend', 'mun_'),
+  omit.labels = c('Time Trend Interactions', 'Municipal Controls'),
   omit.yes.no = c('Yes', '-'),
+  omit.stat = c('ser', 'adj.rsq', 'rsq'),
   table.placement = '!htbp'
 )
 
@@ -537,3 +480,146 @@ lapply(information_results, function(x){summary(x)$fstat}) %>%
 sapply(round, 1) %>%
 paste0('^{***} ', collapse = '& ') %>%
 {paste0(cat('\\emph{F}-stat & '), ., ' \\')}
+
+# define vector of results to be used in plots
+results <- c(performance_results, corruption_results, information_results)
+
+# define vector of results
+plot_effects <- function(
+  outcome, label, treat, reg = results, year_0 = 2012, y_breaks = NULL,
+  save = TRUE
+){
+  # create sequence of years to display
+  years_ <- seq(0, 2017 - year_0)
+
+  # define search patterns to find regression results
+  pattern <- paste0(outcome, '.*mun_')
+  groups <- c(paste0(treat, '|^time'), '^time')
+
+  # find regression results that match outcome of interest
+  regression <- reg[[min(str_which(names(reg), pattern))]]
+
+  # convert results into table and select significant estimates
+  table <- summary(regression)$coefficients
+  table <- table[which(table[,'Pr(>|t|)'] <= .05),]
+
+  # define groups for each trend line
+  group1 <- table[str_which(rownames(table), groups[1]),]
+  group2 <- table[str_which(rownames(table), groups[2]),]
+
+  # define coefficients for time and treat effects
+  timet1 <- group1[str_which(rownames(group1), 'time'), 'Estimate']
+  treat1 <- group1[str_which(rownames(group1), 'time', TRUE), 'Estimate']
+  timet2 <- group2[1]
+
+  # calculate effects for all years
+  e1 <- sapply(years_, function(x){sum(timet1 * x) + sum(treat1)})
+  e2 <- sapply(years_, function(x){sum(timet2 * x)})
+
+  # crate data for plot
+  data <- tibble(
+    effect = c(cumsum(e1), cumsum(e2)),
+    treat = factor(rep(c(1,0), each = length(years_)), levels = c(0, 1)),
+    time = rep(years_, 2)
+  )
+
+  # build plot
+  p <- ggplot(data, aes(x = time, y = effect, group = treat, color = treat))
+
+  # build scale if not provided by user
+  if (is.null(y_breaks)) {
+    # extract min and max for y scale
+    y_min <- min(ggplot_build(p)$data[[1]]['y']) * 0.9
+    y_max <- max(ggplot_build(p)$data[[1]]['y']) * 1.1
+
+    # y-breaks
+    y_breaks <- round(seq(y_min, y_max, by = (y_max - y_min) / 10), 3)
+  }
+
+  # limits for count outcome
+  if (str_detect(outcome, 'count')) {limits <- NULL}
+  else                              {limits <- c(min(y_breaks), max(y_breaks))}
+
+  # build remaining part of graph
+  p <- p +
+    geom_point() +
+    geom_line() +
+    scale_y_continuous(breaks = y_breaks, limits = limits) +
+    scale_color_manual(
+      name = element_blank(), values = c('0' = 'grey59', '1' = 'grey12'),
+      labels = c('0' = 'Control', '1' = 'Treatment')
+    ) +
+    labs(y = label, x = 'Years Since Policy Adoption') +
+    theme_bw() +
+    theme(
+      axis.title = element_text(size = 12),
+      axis.title.y = element_text(size = 16, margin = margin(r = 12)),
+      axis.title.x = element_text(size = 16, margin = margin(t = 12)),
+      axis.text.y = element_text(size = 14, lineheight = 1.1, face = 'bold'),
+      axis.text.x = element_text(size = 14, lineheight = 1.1, face = 'bold'),
+      text = element_text(family = 'LM Roman 10'),
+      panel.border = element_rect(color = 'black', size = 1),
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      panel.grid.minor.y = element_blank(),
+      panel.grid.major.y = element_line(color = 'grey79', linetype = 'dashed'),
+      legend.background = element_rect(colour = 'black', fill = 'grey99'),
+      legend.direction = 'horizontal',
+      legend.text = element_text(size = 16, lineheight = 1.1),
+      legend.position = c(.22, .9)
+    )
+
+  # condition to save file
+  if (save == TRUE) {
+
+    # determine filename
+    files <- list.files('plots', pattern = '.pdf', full.names = TRUE)
+    if (length(files) == 6) {unlink(files)}
+    files <- list.files('plots', pattern = '.pdf', full.names = TRUE)
+
+    # create filename
+    file_ <- paste0(length(files) + 1, outcome, '.pdf')
+
+    # save plot
+    ggsave(
+      filename = file_, plot = p, device = cairo_pdf,
+      path = 'plots', dpi = 100, width = 8, height = 5
+    )
+
+    # return
+    print('plot saved')
+
+  } else {
+
+    # return plot if asked
+    return(p)
+  }
+}
+
+# produce plots
+# produce y_breaks for plots
+y_breaks1 <- seq(0, 1.5, .15)
+y_breaks2 <- seq(0, 0.8, .1)
+y_breaks3 <- seq(.4, -1, -.14)
+y_breaks4 <- seq(0, 7.5, .75)
+
+# take in outcomes, labels, and treament arm of interest
+plot_effects(
+  outcomes[1], 'MDP Adoption', '^active', y_breaks = y_breaks1
+)
+plot_effects(
+  outcomes[1], 'MDP Adoption', '^passive', y_breaks = y_breaks1
+)
+plot_effects(
+  outcomes[2], 'Municipal HDI', '^active|^passive', y_breaks = y_breaks2
+)
+plot_effects(
+  outcomes[2], 'Municipal HDI', '^passive', y_breaks = y_breaks2
+)
+plot_effects(
+  outcomes[8], 'Number of Irregularities (ln)', '^pass', y_breaks = y_breaks3
+)
+plot_effects(
+  outcomes[5], 'FOI Request (Accuracy)', '^active', y_breaks = y_breaks4
+)
+
