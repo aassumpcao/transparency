@@ -605,10 +605,10 @@ y_breaks4 <- seq(0, 7.5, .75)
 
 # take in outcomes, labels, and treament arm of interest
 plot_effects(
-  outcomes[1], 'MDP Adoption', '^active', y_breaks = y_breaks1
+  outcomes[1], 'MUDP Adoption', '^active', y_breaks = y_breaks1
 )
 plot_effects(
-  outcomes[1], 'MDP Adoption', '^passive', y_breaks = y_breaks1
+  outcomes[1], 'MUDP Adoption', '^passive', y_breaks = y_breaks1
 )
 plot_effects(
   outcomes[2], 'Municipal HDI', '^active|^passive', y_breaks = y_breaks2
