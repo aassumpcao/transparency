@@ -105,7 +105,7 @@ analysis %<>%
 # define labels for descriptive statistics and regression tables
 # subset outcomes and create labels for each outcome
 outcomes   <- names(analysis) %>% .[{which(str_detect(., '_outcome'))}]
-out_labels <- c('MUDP Adoption', 'Municipal Development Index (MDI)',
+out_labels <- c('MUDP Adoption', 'Municipal Human Development Index (HDI)',
   'Sanctions Imposed', 'FOIA Request (time)', 'FOIA Request (accuracy)',
   'Acts of Mismanagement (ln)', 'Acts of Corruption (ln)',
   'Number of Irregularities (ln)'
