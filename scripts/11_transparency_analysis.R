@@ -26,7 +26,7 @@ set.seed(20151219)
 cse <- function(reg) {return(sqrt(diag(sandwich::vcovHC(reg, type = 'HC1'))))}
 
 # calculate power for sampling strategy
-power <- function(n = 5570, alpha = .1, H0 = 0, H1 = .05, sig = 1) {
+power <- function(n = 5568, alpha = .1, H0 = 0, H1 = .05, sig = 1) {
   # args:
   #   n:     sample size
   #   alpha: significance level (one-sided)
