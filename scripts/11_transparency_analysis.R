@@ -306,6 +306,10 @@ performance_reg1 <- outcomes[1:3] %>%
 performance_results <- c(performance_reg0, performance_reg1) %>%
                        lapply(felm, data = analysis, exactDOF = TRUE)
 
+# extract cluster robust standard errors
+performance_cse <- lapply(performance_results, summary, robust = TRUE) %>%
+                   lapply(function(x){x$coefficients[,2]})
+
 # produce table two: performance outcomes
 stargazer(
 
@@ -324,6 +328,7 @@ stargazer(
   order = c('\\:', 'active', 'passive'),
   dep.var.caption = '',
   dep.var.labels.include = FALSE,
+  se = performance_cse[c(1,4,2,5,3,6)],
   align = TRUE,
   column.sep.width = '3pt',
   digit.separate = 3,
@@ -372,6 +377,10 @@ corruption_reg1 <- outcomes[6:8] %>%
 corruption_results <- c(corruption_reg0, corruption_reg1) %>%
                       lapply(felm, data = corrup_ds, exactDOF = TRUE)
 
+# extract cluster robust standard errors
+corruption_cse <- lapply(corruption_results, summary, robust = TRUE) %>%
+                  lapply(function(x){x$coefficients[,2]})
+
 # produce table two: corruption outcomes
 stargazer(
 
@@ -389,6 +398,7 @@ stargazer(
   covariate.labels = treat_labels[2],
   dep.var.caption = '',
   dep.var.labels.include = FALSE,
+  se = corruption_cse[c(1,4,2,5,3,6)],
   align = TRUE,
   column.sep.width = '3pt',
   digit.separate = 3,
@@ -437,6 +447,10 @@ information_reg1 <- outcomes[4:5] %>%
 information_results <- c(information_reg0, information_reg1) %>%
                        lapply(felm, data = info_ds, exactDOF = TRUE)
 
+# extract cluster robust standard errors
+information_cse <- lapply(information_results, summary, robust = TRUE) %>%
+                   lapply(function(x){x$coefficients[,2]})
+
 # produce table two: information outcomes
 stargazer(
 
@@ -454,6 +468,7 @@ stargazer(
   covariate.labels = treat_labels[1],
   dep.var.caption = '',
   dep.var.labels.include = FALSE,
+  se = information_cse[c(1,3,2,4)],
   align = TRUE,
   column.sep.width = '3pt',
   digit.separate = 3,
@@ -481,12 +496,54 @@ sapply(round, 1) %>%
 paste0('^{***} ', collapse = '& ') %>%
 {paste0(cat('\\emph{F}-stat & '), ., ' \\')}
 
+### table: simulation of performance outcomes
+# here, i randomly draw municipalities from sample, run the regression, store
+# coefficients and plot them back to check sensitivity of results to different
+# samples
+bootstrap_coefs <- function(data, size, coef, reg) {
+  sample_n(data, size) %>%
+  {felm(formula = reg, data = ., exactDOF = TRUE)} %>%
+  broom::tidy() %>%
+  filter(str_detect(term, coef)) %>%
+  {bind_cols(., sample = rep(size, nrow(.)))} %>%
+  invisible()
+}
+
+# create sequence of sample sizes for performance outcomes
+breaks <- ceiling(nrow(analysis)/10)
+sample_sizes <- c(seq(breaks, nrow(analysis), breaks), nrow(analysis))
+
+# create regex pattern for coefficient search
+regex <- '_treatment1$'
+
+# calculate coefficient estimates for active transparency
+mudp <- lapply(sample_sizes, function(x){
+  bootstrap_coefs(analysis, x, regex, performance_reg1[[1]])
+})
+hdi <- lapply(sample_sizes, function(x){
+  bootstrap_coefs(analysis, x, regex, performance_reg1[[2]])
+})
+sanctions <- lapply(sample_sizes, function(x){
+  bootstrap_coefs(analysis, x, regex, performance_reg1[[3]])
+})
+
+# create dataset of bootstrapped effects
+boostrap_effects <- bind_rows(mudp, hdi, sanctions) %>%
+                    mutate(
+                      outcome = rep(c('mudp', 'hdi', 'sanctions'), each = 30),
+                      ci_lower = estimate - qnorm(.025) * std.error,
+                      ci_upper = estimate + qnorm(.025) * std.error
+                    )
+
+
+
+
 # define vector of results to be used in plots
 results <- c(performance_results, corruption_results, information_results)
 
 # define vector of results
 plot_effects <- function(
-  outcome, label, treat, reg = results, year_0 = 2012, y_breaks = NULL,
+  outcome, label, treat, y_breaks = NULL, reg = results, year_0 = 2012,
   save = TRUE
 ){
   # create sequence of years to display
@@ -604,22 +661,10 @@ y_breaks3 <- seq(.4, -1, -.14)
 y_breaks4 <- seq(0, 7.5, .75)
 
 # take in outcomes, labels, and treament arm of interest
-plot_effects(
-  outcomes[1], 'MUDP Adoption', '^active', y_breaks = y_breaks1
-)
-plot_effects(
-  outcomes[1], 'MUDP Adoption', '^passive', y_breaks = y_breaks1
-)
-plot_effects(
-  outcomes[2], 'Municipal HDI', '^active|^passive', y_breaks = y_breaks2
-)
-plot_effects(
-  outcomes[2], 'Municipal HDI', '^passive', y_breaks = y_breaks2
-)
-plot_effects(
-  outcomes[8], 'Number of Irregularities (ln)', '^pass', y_breaks = y_breaks3
-)
-plot_effects(
-  outcomes[5], 'FOI Request (Accuracy)', '^active', y_breaks = y_breaks4
-)
+plot_effects(outcomes[1], 'MUDP Adoption', '^active', y_breaks1)
+plot_effects(outcomes[1], 'MUDP Adoption', '^passive', y_breaks1)
+plot_effects(outcomes[2], 'Municipal HDI', '^active|^passive', y_breaks2)
+plot_effects(outcomes[2], 'Municipal HDI', '^passive', y_breaks2)
+plot_effects(outcomes[8], 'Number of Irregularities (ln)', '^pass', y_breaks3)
+plot_effects(outcomes[5], 'FOI Request (Accuracy)', '^active', y_breaks4)
 
