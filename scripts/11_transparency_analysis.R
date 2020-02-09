@@ -121,8 +121,8 @@ cov_labels <- c(
 )
 
 # subset treatment assignment indicators and create labels
-treatment     <- names(analysis) %>% .[{which(str_detect(., 'treatment$'))}]
-treat_labels  <- c(
+treatment    <- names(analysis) %>% .[{which(str_detect(., 'treatment$'))}]
+treat_labels <- c(
   'Active Transparency','Passive Transparency','Active + Passive Transparency'
 )
 
@@ -197,6 +197,7 @@ calculate_means <- function(active = 1, passive = 1, vars = covariates) {
 }
 
 # calculate means for all covariates and all groups
+# variables <- c(covariates, outcomes[1:3])
 actpass <- calculate_means(active = 1, passive = 1)
 active  <- calculate_means(active = 1, passive = 0)
 passive <- calculate_means(active = 0, passive = 1)
@@ -281,10 +282,40 @@ xtable::print.xtable(
 # 3. no simultaneous, external shock
 
 # parallel trends
+pre_treatment <- analysis %>%
+  filter(obs_year > 2005 & obs_year < 2012) %>%
+  select(obs_year, active_treatment, matches('mdp|ifdm|sanction')) %>%
+  mutate_all(as.numeric)
+
+# create function
+formulas <- paste0(names(pre_treatment)[3:5], ' ~ active_treatment') %>%
+            sapply(as.formula)
+
+# test difference in means across pre-treatment levels
+pretreatment_levels <- lapply(formulas, t.test, data = pre_treatment) %>%
+                       lapply(function(x){x %$% c(estimate, p.value)}) %>%
+                       unname() %>%
+                       lapply(bind_rows)
+
+# redefine element names
+names <- c('Treatment', 'Control', 'p-value')
+for (i in 1:3) {names(pretreatment_levels[[i]]) <- names}
+
+# produce table
+pretreatment_levels %>%
+  bind_rows() %>%
+  transmute(
+    Treatment = Treatment, Control = Control,
+    `Mean Diff.` = Treatment - Control, `p-value` = `p-value`
+  )
+
+#
+
+
 ### include time_trends
 
 # stable composition of groups
-### no change in control or tretament
+### no change in control or treatment
 
 # no simultaneous, external shock
 ### use args in favor of audit program
@@ -528,14 +559,61 @@ sanctions <- lapply(sample_sizes, function(x){
 })
 
 # create dataset of bootstrapped effects
-boostrap_effects <- bind_rows(mudp, hdi, sanctions) %>%
-                    mutate(
-                      outcome = rep(c('mudp', 'hdi', 'sanctions'), each = 30),
-                      ci_lower = estimate - qnorm(.025) * std.error,
-                      ci_upper = estimate + qnorm(.025) * std.error
-                    )
+boostraped_effects <- bind_rows(mudp, hdi, sanctions) %>%
+                      mutate(
+                        Outcome = rep(c('MUDP', 'HDI', 'Sanctions'), each = 30),
+                        ci_lower = estimate - qnorm(.025) * std.error,
+                        ci_upper = estimate + qnorm(.025) * std.error
+                      )
 
+plot_bootstrap <- function(data, file, x_breaks = sample_sizes) {
+  # create plot
+  p <- ggplot(data, aes(y = estimate, x = sample, color = Outcome)) +
+    geom_hline(aes(yintercept = 0), linetype = 'dashed') +
+    geom_point(position = position_dodge(250)) +
+    geom_pointrange(
+      aes(ymin = ci_lower, ymax = ci_upper), position = position_dodge(250)
+    ) +
+    scale_x_continuous(breaks = sample_sizes) +
+    scale_color_manual(
+      name = 'Outcome:',
+      values = c('MUDP' = 'grey12', 'HDI' = 'yellow4', 'Sanctions' = 'grey59')
+    ) +
+    labs(y = 'Point Estimates and CIs', x = 'Sample Size') +
+    theme_bw() +
+    theme(
+      axis.title = element_text(size = 12),
+      axis.title.y = element_text(size = 16, margin = margin(r = 12)),
+      axis.title.x = element_text(size = 16, margin = margin(t = 12)),
+      axis.text.y = element_text(size = 14, lineheight = 1.1, face = 'bold'),
+      axis.text.x = element_text(size = 14, lineheight = 1.1, face = 'bold'),
+      text = element_text(family = 'LM Roman 10'),
+      panel.border = element_rect(color = 'black', size = 1),
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      panel.grid.minor.y = element_line(color = 'grey79', linetype = 'dashed'),
+      panel.grid.major.y = element_line(color = 'grey79', linetype = 'dashed'),
+      legend.text = element_text(size = 16, lineheight = 1.1),
+      legend.title = element_text(size = 16, lineheight = 1.1),
+      legend.position = 'top'
+    )
 
+    # save plot
+    ggsave(
+      filename = paste0(file, '.pdf'), plot = p, device = cairo_pdf,
+      path = 'plots', dpi = 100, width = 8, height = 5
+    )
+}
+
+# create data for graphs
+active_bootstrap  <- filter(boostraped_effects, term == 'active_treatment1')
+passive_bootstrap <- filter(boostraped_effects, term == 'passive_treatment1')
+joint_bootstrap   <- filter(boostraped_effects, str_detect(term, '\\:'))
+
+# save graphs for each intervention
+plot_bootstrap(active_bootstrap, 'active')
+plot_bootstrap(passive_bootstrap, 'passive')
+plot_bootstrap(joint_bootstrap, 'joint')
 
 
 # define vector of results to be used in plots
@@ -630,9 +708,9 @@ plot_effects <- function(
   if (save == TRUE) {
 
     # determine filename
-    files <- list.files('plots', pattern = '.pdf', full.names = TRUE)
+    files <- list.files('plots', pattern = 'outcome\\.pdf', full.names = TRUE)
     if (length(files) == 6) {unlink(files)}
-    files <- list.files('plots', pattern = '.pdf', full.names = TRUE)
+    files <- list.files('plots', pattern = 'outcome\\.pdf', full.names = TRUE)
 
     # create filename
     file_ <- paste0(length(files) + 1, outcome, '.pdf')
