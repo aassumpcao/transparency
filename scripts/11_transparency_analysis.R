@@ -559,12 +559,12 @@ sanctions <- lapply(sample_sizes, function(x){
 })
 
 # create dataset of bootstrapped effects
-boostraped_effects <- bind_rows(mudp, hdi, sanctions) %>%
-                      mutate(
-                        Outcome = rep(c('MUDP', 'HDI', 'Sanctions'), each = 30),
-                        ci_lower = estimate - qnorm(.025) * std.error,
-                        ci_upper = estimate + qnorm(.025) * std.error
-                      )
+boostrapped_effects <- bind_rows(mudp, hdi, sanctions) %>%
+                       mutate(
+                         Outcome = rep(c('MUDP', 'HDI', 'Sanctions'), each = 30),
+                         ci_lower = estimate - qnorm(.025) * std.error,
+                         ci_upper = estimate + qnorm(.025) * std.error
+                       )
 
 plot_bootstrap <- function(data, file, x_breaks = sample_sizes) {
   # create plot
@@ -606,15 +606,14 @@ plot_bootstrap <- function(data, file, x_breaks = sample_sizes) {
 }
 
 # create data for graphs
-active_bootstrap  <- filter(boostraped_effects, term == 'active_treatment1')
-passive_bootstrap <- filter(boostraped_effects, term == 'passive_treatment1')
-joint_bootstrap   <- filter(boostraped_effects, str_detect(term, '\\:'))
+active_bootstrap  <- filter(boostrapped_effects, term == 'active_treatment1')
+passive_bootstrap <- filter(boostrapped_effects, term == 'passive_treatment1')
+joint_bootstrap   <- filter(boostrapped_effects, str_detect(term, '\\:'))
 
 # save graphs for each intervention
 plot_bootstrap(active_bootstrap, 'active')
 plot_bootstrap(passive_bootstrap, 'passive')
 plot_bootstrap(joint_bootstrap, 'joint')
-
 
 # define vector of results to be used in plots
 results <- c(performance_results, corruption_results, information_results)
@@ -622,10 +621,10 @@ results <- c(performance_results, corruption_results, information_results)
 # define vector of results
 plot_effects <- function(
   outcome, label, treat, y_breaks = NULL, reg = results, year_0 = 2012,
-  save = TRUE
+  year_final = 2017, save = TRUE
 ){
   # create sequence of years to display
-  years_ <- seq(0, 2017 - year_0)
+  years_ <- seq(0, year_final - year_0)
 
   # define search patterns to find regression results
   pattern <- paste0(outcome, '.*mun_')
@@ -638,26 +637,44 @@ plot_effects <- function(
   table <- summary(regression)$coefficients
   table <- table[which(table[,'Pr(>|t|)'] <= .05),]
 
-  # define groups for each trend line
-  group1 <- table[str_which(rownames(table), groups[1]),]
-  group2 <- table[str_which(rownames(table), groups[2]),]
-
   # define coefficients for time and treat effects
-  timet1 <- group1[str_which(rownames(group1), 'time'), 'Estimate']
-  treat1 <- group1[str_which(rownames(group1), 'time', TRUE), 'Estimate']
-  timet2 <- group2[1]
+  if (str_detect(pattern, 'corr')) {
 
-  # calculate effects for all years
-  e1 <- sapply(years_, function(x){sum(timet1 * x) + sum(treat1)})
-  e2 <- sapply(years_, function(x){sum(timet2 * x)})
+    # define groups for each trend line
+    group1 <- table[str_which(rownames(table), 'pass|Inter'),]
+
+    # define coefficients for time and treat effects
+    timet1 <- 0
+    treat1 <- group1[2, 'Estimate']
+    timet2 <- 0
+
+    # calculate effects for all years
+    e1 <- c(treat1, rep(0, length(years_)-1))
+    e2 <- sapply(years_, function(x){sum(timet2 * x)})
+    diff <- e1 - e2
+
+  } else {
+    # define groups for each trend line
+    group1 <- table[str_which(rownames(table), groups[1]),]
+    group2 <- table[str_which(rownames(table), groups[2]),]
+
+    # define coefficients for time and treat effects
+    timet1 <- group1[str_which(rownames(group1), 'time'), 'Estimate']
+    treat1 <- group1[str_which(rownames(group1), 'time', TRUE), 'Estimate']
+    timet2 <- group2[1]
+
+    # calculate effects for all years
+    e1 <- sapply(years_, function(x){sum(timet1 * x) + sum(treat1)})
+    e2 <- sapply(years_, function(x){sum(timet2 * x)})
+    diff <- e1 - e2
+  }
 
   # crate data for plot
   data <- tibble(
-    effect = c(cumsum(e1), cumsum(e2)),
-    treat = factor(rep(c(1,0), each = length(years_)), levels = c(0, 1)),
-    time = rep(years_, 2)
+    effect = c(cumsum(e1), cumsum(e2), cumsum(diff)),
+    treat = factor(rep(c(1,0,2), each = length(years_)), levels = c(0, 1, 2)),
+    time = rep(years_+1, 3)
   )
-
   # build plot
   p <- ggplot(data, aes(x = time, y = effect, group = treat, color = treat))
 
@@ -680,9 +697,11 @@ plot_effects <- function(
     geom_point() +
     geom_line() +
     scale_y_continuous(breaks = y_breaks, limits = limits) +
+    scale_x_continuous(breaks = years_+1) +
     scale_color_manual(
-      name = element_blank(), values = c('0' = 'grey59', '1' = 'grey12'),
-      labels = c('0' = 'Control', '1' = 'Treatment')
+      name = element_blank(),
+      values = c('0' = 'grey59', '1' = 'grey12', '2' = 'dodgerblue2'),
+      labels = c('0' = 'Control', '1' = 'Treatment', '2' = 'Difference')
     ) +
     labs(y = label, x = 'Years Since Policy Adoption') +
     theme_bw() +
@@ -701,7 +720,7 @@ plot_effects <- function(
       legend.background = element_rect(colour = 'black', fill = 'grey99'),
       legend.direction = 'horizontal',
       legend.text = element_text(size = 16, lineheight = 1.1),
-      legend.position = c(.22, .9)
+      legend.position = c(.3, .95)
     )
 
   # condition to save file
@@ -735,14 +754,14 @@ plot_effects <- function(
 # produce y_breaks for plots
 y_breaks1 <- seq(0, 1.5, .15)
 y_breaks2 <- seq(0, 0.8, .1)
-y_breaks3 <- seq(.4, -1, -.14)
+y_breaks3 <- seq(-.3, .1, .04)
 y_breaks4 <- seq(0, 7.5, .75)
 
 # take in outcomes, labels, and treament arm of interest
-plot_effects(outcomes[1], 'MUDP Adoption', '^active', y_breaks1)
-plot_effects(outcomes[1], 'MUDP Adoption', '^passive', y_breaks1)
+plot_effects(outcomes[1], 'MUDP Update', '^active', y_breaks1)
+plot_effects(outcomes[1], 'MUDP Update', '^passive', y_breaks1)
 plot_effects(outcomes[2], 'Municipal HDI', '^active|^passive', y_breaks2)
 plot_effects(outcomes[2], 'Municipal HDI', '^passive', y_breaks2)
-plot_effects(outcomes[8], 'Number of Irregularities (ln)', '^pass', y_breaks3)
+plot_effects(outcomes[7], 'Acts of Corruption (ln)', '^pass', y_breaks3)
 plot_effects(outcomes[5], 'FOI Request (Accuracy)', '^active', y_breaks4)
 

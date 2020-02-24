@@ -47,3 +47,5 @@ unused
 
 # files
 *.tex
+text/one-pager.pdf
+*.cls
